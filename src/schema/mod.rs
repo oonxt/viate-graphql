@@ -38,6 +38,12 @@ pub enum ColumnType {
     Jsonb,
     Date,
     Time,
+    /// PostgreSQL `time with time zone`, carried as a string with its UTC
+    /// offset intact. Ordering and comparisons use PostgreSQL's native timetz
+    /// semantics, not the local clock time or the string's lexical order.
+    /// SQLite and MySQL have no native equivalent; manually mapping text to
+    /// this type on those backends retains text comparison semantics.
+    TimeTz,
     /// User-defined enum type; carries the schema-qualified type name used in
     /// cast expressions (`$1::"schema"."name"`).
     Enum {
@@ -477,6 +483,11 @@ impl Schema {
     ///
     /// Always available — SDL export is a build-time artifact and has nothing to
     /// do with whether runtime introspection is enabled.
+    ///
+    /// # Panics
+    ///
+    /// If GraphQL type names collide; see [`crate::type_system::TypeSystem::build`].
+    /// Call at startup to catch schema configuration errors before serving requests.
     pub fn type_system(&self) -> &crate::type_system::TypeSystem {
         self.type_system
             .get_or_init(|| crate::type_system::TypeSystem::build(self))

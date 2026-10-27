@@ -17,6 +17,28 @@ use serde_json::{json, Value};
 use vision_graphql::ast::{BoolExpr, CmpOp};
 use vision_graphql::{Dialect, Engine, Error, Query, Schema, ScopeSet};
 
+#[path = "common/time_text.rs"]
+mod time_text;
+
+#[tokio::test]
+async fn manually_mapped_timetz_preserves_text_semantics() {
+    let db = fresh_db().await;
+    run_ddl(
+        &db.pool,
+        "CREATE TABLE shifts (id INT PRIMARY KEY, starts_at TEXT)",
+    )
+    .await;
+    let name: String = sqlx::query_scalar("SELECT DATABASE()")
+        .fetch_one(&db.pool)
+        .await
+        .unwrap();
+    time_text::check(Engine::new(
+        db.pool.clone(),
+        time_text::schema(Dialect::MySql, &name),
+    ))
+    .await;
+}
+
 const DDL: &str = r#"
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,

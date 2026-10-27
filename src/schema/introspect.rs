@@ -120,6 +120,7 @@ pub fn data_type_to_pg_type(data_type: &str) -> Option<ColumnType> {
         "jsonb" => Some(ColumnType::Jsonb),
         "date" => Some(ColumnType::Date),
         "time without time zone" => Some(ColumnType::Time),
+        "time with time zone" => Some(ColumnType::TimeTz),
         _ => None,
     }
 }
@@ -542,6 +543,10 @@ mod tests {
         assert_eq!(
             strip_type_modifier("time(6) without time zone"),
             "time without time zone"
+        );
+        assert_eq!(
+            data_type_to_pg_type(&strip_type_modifier("time(6) with time zone")),
+            Some(ColumnType::TimeTz)
         );
         // No modifier at all: unchanged.
         assert_eq!(strip_type_modifier("integer"), "integer");

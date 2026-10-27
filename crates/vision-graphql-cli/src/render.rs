@@ -121,6 +121,7 @@ fn pg_type_short(t: &ColumnType) -> std::borrow::Cow<'static, str> {
         ColumnType::Jsonb => "jsonb",
         ColumnType::Date => "date",
         ColumnType::Time => "time",
+        ColumnType::TimeTz => "timetz",
         ColumnType::Enum { schema, name } => {
             return std::borrow::Cow::Owned(format!("{schema}.{name}"));
         }
