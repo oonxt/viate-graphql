@@ -3,6 +3,25 @@
 Notable changes per release. Versions before 0.13.0 are reconstructed from the
 release commits; entries from 0.13.0 on are written as the work lands.
 
+## Unreleased
+
+### Fixed
+
+- PostgreSQL `timetz` (`time with time zone`) columns were left out of the
+  introspected schema, so selecting, filtering or ordering by one failed as an
+  unknown column. They now map to `ColumnType::TimeTz` and the GraphQL `timetz`
+  scalar, including on views and materialized views. Reads and writes retain
+  the offset and fractional seconds; scalar and list parameters use native
+  `timetz` casts, including compiled queries. Sorting, pagination, comparisons
+  and `min`/`max` use PostgreSQL's native time-with-offset semantics rather than
+  text or local-clock ordering.
+- Building the GraphQL type system no longer silently replaces an existing
+  definition when another claims its name (for example, a table exposed as
+  `timetz` and the `timetz` scalar). The infallible type-system builder now
+  panics with the conflicting name and asks for an `expose_as` rename; call
+  `Schema::type_system` at startup to detect this configuration error before
+  serving requests.
+
 ## 0.27.0 — 2026-10-01
 
 ### Fixed

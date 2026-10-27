@@ -77,6 +77,61 @@ async fn filter_by_timestamptz_gt() {
 }
 
 #[tokio::test]
+async fn temporal_ordering_and_compiled_filters_use_native_types() {
+    let db = common::fresh_db().await;
+    sqlx::raw_sql(
+        "CREATE TABLE moments (id INT PRIMARY KEY, instant TIMESTAMPTZ, clock TIME);
+         INSERT INTO moments VALUES
+             (1, '2026-01-01T00:30:00+02:00', '09:00:00.01'),
+             (2, '2025-12-31T23:30:00Z', '09:00:00.1'),
+             (3, NULL, NULL);",
+    )
+    .execute(&db.pool)
+    .await
+    .unwrap();
+    let schema = Schema::introspect(&db.pool).await.unwrap().build();
+    let engine = Engine::new(db.pool.clone(), schema);
+    for column in ["instant", "clock"] {
+        for (direction, expected) in [("asc_nulls_last", 2), ("desc_nulls_last", 1)] {
+            let source = format!(
+                "{{ moments(order_by: {{{column}: {direction}}}, limit: 1, offset: 1) {{ id }} }}"
+            );
+            let value = engine.query(&source, None).await.unwrap();
+            assert_eq!(value["moments"], json!([{"id": expected}]));
+        }
+    }
+    let query = engine
+        .compile(
+            "query($times: [timestamptz!]!) {
+            moments(where: {instant: {_in: $times}}) { id }
+        }",
+        )
+        .unwrap();
+    let value = engine
+        .execute(&query, Some(json!({"times": ["2025-12-31T22:30:00Z"]})))
+        .await
+        .unwrap();
+    assert_eq!(value["moments"], json!([{"id": 1}]));
+    for (column, ty, after) in [
+        ("instant", "timestamptz", "2026-01-01T00:30:00+02:00"),
+        ("clock", "time", "09:00:00.01"),
+    ] {
+        let query = engine
+            .compile(&format!(
+                "query($after: {ty}!) {{
+                moments(where: {{{column}: {{_gt: $after}}}}) {{ id }}
+            }}"
+            ))
+            .unwrap();
+        let value = engine
+            .execute(&query, Some(json!({"after": after})))
+            .await
+            .unwrap();
+        assert_eq!(value["moments"], json!([{"id": 2}]));
+    }
+}
+
+#[tokio::test]
 async fn filter_by_numeric_gt() {
     let (engine, _db) = setup().await;
     let res = engine

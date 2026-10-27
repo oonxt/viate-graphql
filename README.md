@@ -84,7 +84,7 @@ envelope for multi-root GraphQL strings. The untyped `query`/`run` returning
 | `operationName` (`query_with` / `query_as_with`, on every handle) | ✓ |
 | GraphQL-shaped errors (`Error::to_graphql_response`, `Error::code`) | ✓ |
 | Multiple schemas in one Schema (`Schema::introspect_schemas`), incl. cross-schema FK relations | ✓ (PostgreSQL; a SQLite file has one) |
-| PG enum / `date` / `time` / `smallint` / `character(n)` columns (enum casts are schema-qualified) | ✓ |
+| PG enum / `date` / `time` / `timetz` / `smallint` / `character(n)` columns (enum casts are schema-qualified) | ✓ |
 | Array, `bytea`, `interval`, `inet` columns | Not mapped — left out of the schema, and reported by `vision-gql diff` |
 | TOML config overlay (`expose_as`, `schema`, `hide_columns`, manual relations) | ✓ |
 | Typed Rust builder API | ✓ |
@@ -96,6 +96,19 @@ envelope for multi-root GraphQL strings. The untyped `query`/`run` returning
 | Persisted queries: compile a set at startup, run by key (`QueryRegistry`) | ✓ |
 | Compiled statements with a bounded `order_by` / `where` shape (`@choices`), and filters a request may drop (`@optional`) | ✓ |
 | Subscriptions | Not implemented |
+
+PostgreSQL `timetz` columns use the GraphQL scalar `timetz` and Rust
+`ColumnType::TimeTz`. Values are strings such as `"09:00:00.123456+02"`;
+reads and writes preserve the offset. Sorting and comparisons follow native
+PostgreSQL semantics: `09:00+02` precedes `08:00+00`, not the other way round.
+Equal UTC clock times with different offsets are further ordered by the offset,
+so they are not interchangeable in equality filters as `timestamptz` values are.
+SQLite and MySQL have no native `timetz`; manually mapping a text column to
+`TimeTz` there keeps text comparisons, not PostgreSQL time-with-offset ordering.
+A table's exposed name must not collide with a scalar or another generated type;
+use `expose_as` to rename it. Call `Schema::type_system()` at startup to detect
+conflicting definitions: its infallible builder panics rather than publishing a
+type definition that silently overwrites another.
 
 ### Not implemented
 

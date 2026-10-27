@@ -181,6 +181,7 @@ pub(crate) fn pg_type_name(ty: &ColumnType) -> Cow<'static, str> {
         ColumnType::Jsonb => "jsonb",
         ColumnType::Date => "date",
         ColumnType::Time => "time",
+        ColumnType::TimeTz => "timetz",
         ColumnType::Enum { schema, name } => {
             return Cow::Owned(format!(
                 "{}.{}",
@@ -257,6 +258,8 @@ pub(crate) fn mysql_json_table_type(ty: &ColumnType) -> &'static str {
         ColumnType::Timestamp | ColumnType::TimestampTz => "DATETIME(6)",
         ColumnType::Date => "DATE",
         ColumnType::Time => "TIME(6)",
+        // No MySQL time-with-offset type: TIME would silently discard the zone.
+        ColumnType::TimeTz => "TEXT",
     }
 }
 

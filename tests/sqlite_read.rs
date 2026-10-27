@@ -15,6 +15,23 @@ use vision_graphql::ast::{BoolExpr, CmpOp};
 use vision_graphql::sqlite::connect_options;
 use vision_graphql::{Dialect, Engine, Error, Query, Schema, ScopeSet};
 
+#[path = "common/time_text.rs"]
+mod time_text;
+
+#[tokio::test]
+async fn manually_mapped_timetz_preserves_text_semantics() {
+    let pool = pool().await;
+    sqlx::raw_sql("CREATE TABLE shifts (id INTEGER PRIMARY KEY, starts_at TEXT)")
+        .execute(&pool)
+        .await
+        .unwrap();
+    time_text::check(Engine::new(
+        pool,
+        time_text::schema(Dialect::Sqlite, "main"),
+    ))
+    .await;
+}
+
 const DDL: &str = r#"
 CREATE TABLE users (
     id INTEGER PRIMARY KEY,

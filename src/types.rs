@@ -388,6 +388,7 @@ impl NullOf {
             | ColumnType::TimestampTz
             | ColumnType::Date
             | ColumnType::Time
+            | ColumnType::TimeTz
             | ColumnType::Enum { .. }
             | ColumnType::Json
             | ColumnType::Jsonb => NullOf::Text,
@@ -489,6 +490,7 @@ pub fn json_to_bind(v: &Value, pg: &ColumnType) -> Result<Bind> {
         | ColumnType::TimestampTz
         | ColumnType::Date
         | ColumnType::Time
+        | ColumnType::TimeTz
         | ColumnType::Enum { .. } => v
             .as_str()
             .map(|s| Bind::Text(s.to_string()))
@@ -559,6 +561,7 @@ pub fn json_to_bind_array(values: &[Value], pg: &ColumnType) -> Result<Bind> {
         | ColumnType::TimestampTz
         | ColumnType::Date
         | ColumnType::Time
+        | ColumnType::TimeTz
         | ColumnType::Enum { .. } => {
             collect(values, |v| v.as_str().map(str::to_string), "string").map(Bind::TextArray)
         }
@@ -675,6 +678,7 @@ mod tests {
             (TimestampTz, json!("x")),
             (Date, json!("x")),
             (Time, json!("x")),
+            (TimeTz, json!("09:00:00.123456+02")),
             (Json, json!({})),
             (Jsonb, json!({})),
             (

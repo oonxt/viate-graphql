@@ -205,6 +205,13 @@ pub struct TypeSystem {
 
 impl TypeSystem {
     /// Derive the type system a [`Schema`] exposes.
+    ///
+    /// # Panics
+    ///
+    /// If two generated definitions claim the same GraphQL type name (for
+    /// example, a row object and a custom scalar). Rename the conflicting
+    /// table with `expose_as` rather than
+    /// publishing a schema whose references silently resolve to the wrong type.
     pub fn build(schema: &Schema) -> Self {
         Builder::new(schema).build()
     }
@@ -296,6 +303,7 @@ pub fn scalar_name(pg: &ColumnType) -> String {
         ColumnType::TimestampTz => "timestamptz".into(),
         ColumnType::Date => "date".into(),
         ColumnType::Time => "time".into(),
+        ColumnType::TimeTz => "timetz".into(),
         ColumnType::Json => "json".into(),
         ColumnType::Jsonb => "jsonb".into(),
         // The variants are not introspected, so this cannot be a GraphQL enum;
@@ -495,6 +503,13 @@ impl<'a> Builder<'a> {
     }
 
     fn add(&mut self, def: TypeDef) {
+        // A row object replaced by a scalar still yields valid-looking SDL,
+        // but it no longer describes the objects execution actually returns.
+        assert!(
+            !self.types.contains_key(def.name()),
+            "GraphQL type name collision for '{}'; rename the conflicting table with expose_as",
+            def.name()
+        );
         self.types.insert(def.name().to_string(), def);
     }
 
@@ -1374,6 +1389,34 @@ mod tests {
 
     fn ts() -> TypeSystem {
         TypeSystem::build(&schema())
+    }
+
+    #[test]
+    #[should_panic(expected = "GraphQL type name collision for 'timetz'")]
+    fn a_scalar_must_not_replace_a_row_object() {
+        let schema = Schema::builder()
+            .table(
+                Table::new("timetz", "public", "timetz")
+                    .column("id", "id", ColumnType::Int4, false)
+                    .column("starts_at", "starts_at", ColumnType::TimeTz, true),
+            )
+            .build();
+        TypeSystem::build(&schema);
+    }
+
+    #[test]
+    fn renaming_the_exposure_resolves_a_scalar_row_collision() {
+        let schema = Schema::builder()
+            .table(
+                Table::new("shifts", "public", "timetz")
+                    .column("id", "id", ColumnType::Int4, false)
+                    .column("starts_at", "starts_at", ColumnType::TimeTz, true),
+            )
+            .build();
+        let ts = TypeSystem::build(&schema);
+        assert!(matches!(ts.get("shifts"), Some(TypeDef::Object { .. })));
+        assert!(matches!(ts.get("timetz"), Some(TypeDef::Scalar { .. })));
+        assert!(dangling_references(&ts).is_empty());
     }
 
     #[test]
