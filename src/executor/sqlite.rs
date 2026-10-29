@@ -18,7 +18,7 @@ where
 }
 
 /// Run a [`MutationPlan`] on a connection and assemble its response; see
-/// [`Runner::execute_plan`].
+/// `Runner::execute_plan`.
 pub async fn execute_plan(
     conn: &mut sqlx::SqliteConnection,
     plan: &MutationPlan,

@@ -25,7 +25,7 @@
 //! - `DATETIME` is a [`ColumnType::Timestamp`] and `TIMESTAMP` a
 //!   [`ColumnType::TimestampTz`]: the second is stored as UTC and read back
 //!   in the session's zone, which the renderer converts back
-//!   ([`Dialect::value_as_json`](crate::dialect::Dialect::value_as_json)).
+//!   (`Dialect::value_as_json`).
 //! - `ENUM` is text. `DECIMAL` is [`ColumnType::Numeric`], exact.
 //!
 //! What has no mapping is left out and recorded in

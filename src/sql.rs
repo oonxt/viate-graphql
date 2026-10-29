@@ -42,15 +42,15 @@ pub enum Rendered {
     Statement {
         sql: String,
         specs: Vec<BindSpec>,
-        /// The response's key order, for a dialect that
-        /// [reorders keys](Dialect::reorders_keys); `None` elsewhere.
+        /// The response's key order, for a dialect that reorders keys
+        /// (`Dialect::reorders_keys`); `None` elsewhere.
         keys: Option<KeyOrder>,
     },
     Plan(Box<MutationPlan>),
 }
 
 /// The keys of a query's response, in the order the selection asked for
-/// them — for a dialect that [reorders them](Dialect::reorders_keys).
+/// them — for a dialect that reorders them (`Dialect::reorders_keys`).
 ///
 /// MySQL's `JSON_OBJECT` sorts an object's keys by length and then by name,
 /// so `{ name id }` comes back as `{"id": …, "name": …}` at every level. A
