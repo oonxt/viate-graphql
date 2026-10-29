@@ -45,17 +45,17 @@
 //!   that orders by contract is the window form: the inner select numbers
 //!   its rows in the order asked for (`ROW_NUMBER() OVER (ORDER BY …)`), and
 //!   the aggregate runs as a window over the whole frame ordered by that
-//!   number. See [`Dialect::rows_list_open`] and
-//!   [`Dialect::numbers_rows_for_order`].
+//!   number. See `Dialect::rows_list_open` and
+//!   `Dialect::numbers_rows_for_order`.
 //! - **Placeholders are anonymous.** `?` only, no `?3`: a parameter used
 //!   twice has to be bound twice. The renderer writes numbered placeholders
-//!   as for SQLite and [`Dialect::anonymise_placeholders`] rewrites the
+//!   as for SQLite and `Dialect::anonymise_placeholders` rewrites the
 //!   statement once it is complete, repeating the bind specs in occurrence
 //!   order.
 //! - **A `TINYINT(1)` is `0`/`1`** inside `JSON_OBJECT`, as on SQLite; and a
 //!   `DATETIME` renders as `2026-01-02 03:04:05.000000`, a `TIMESTAMP` in
 //!   the session's time zone. Both are put right at the point the value
-//!   enters the JSON ([`Dialect::value_as_json`]) so the response carries
+//!   enters the JSON (`Dialect::value_as_json`) so the response carries
 //!   what PostgreSQL's would: a JSON boolean, an ISO 8601 string, UTC with
 //!   its offset.
 //! - **`JSON_OBJECT` sorts its keys.** The response comes back with the keys
