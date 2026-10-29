@@ -1,4 +1,4 @@
-# Working on vision-graphql
+# Working on viate-graphql
 
 What the code does is in the README; what the API is, is in the rustdoc. This
 file is for what neither shows: the invariants that are easy to break without

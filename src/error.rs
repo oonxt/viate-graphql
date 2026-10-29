@@ -1,4 +1,4 @@
-//! Error types for vision-graphql.
+//! Error types for viate-graphql.
 
 use thiserror::Error as ThisError;
 
@@ -43,7 +43,7 @@ pub enum Error {
     /// the statement and the executor recognises the message, SQLite's plan
     /// counts the rows and raises it itself. The text is the guard's own.
     #[error(
-        "vision_graphql: scope check violation on \"{table}\" ({rows} rows) {action} outside scope"
+        "viate_graphql: scope check violation on \"{table}\" ({rows} rows) {action} outside scope"
     )]
     ScopeViolation {
         /// Exposed name of the table.
@@ -87,7 +87,7 @@ impl Error {
     /// is one: PostgreSQL's guard raises by casting the violation text to an
     /// integer, and the text comes back inside the cast's own message.
     pub(crate) fn scope_violation_in(message: &str) -> Option<Error> {
-        let marker = "vision_graphql: scope check violation on \"";
+        let marker = "viate_graphql: scope check violation on \"";
         let rest = &message[message.find(marker)? + marker.len()..];
         let (table, rest) = rest.split_once("\" (")?;
         let (rows, rest) = rest.split_once(" rows) ")?;

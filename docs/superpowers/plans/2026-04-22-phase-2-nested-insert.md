@@ -44,8 +44,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Relation, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{PgType, Relation, Schema, Table};
+use viate_graphql::Engine;
 
 fn schema() -> Schema {
     Schema::builder()
@@ -1890,12 +1890,12 @@ git commit -m "test: atomic rollback on nested child failure"
 
 Run: `cargo test --lib render_insert_with_nested_children`
 
-Expected on first run: `.snap.new` file created at `src/snapshots/vision_graphql__sql__tests__render_insert_with_nested_children.snap.new`.
+Expected on first run: `.snap.new` file created at `src/snapshots/viate_graphql__sql__tests__render_insert_with_nested_children.snap.new`.
 
 Inspect it:
 
 ```
-cat src/snapshots/vision_graphql__sql__tests__render_insert_with_nested_children.snap.new
+cat src/snapshots/viate_graphql__sql__tests__render_insert_with_nested_children.snap.new
 ```
 
 The rendered SQL must contain these substrings in order (line breaks may differ):

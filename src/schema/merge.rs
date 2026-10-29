@@ -72,7 +72,7 @@ pub fn exposed_name_map(db: &IntrospectedDb) -> BTreeMap<(String, String), Strin
             };
             if let Some((owner_schema, owner_table)) = taken.get(&candidate) {
                 tracing::warn!(
-                    target: "vision_graphql::merge",
+                    target: "viate_graphql::merge",
                     schema = %schema,
                     table = %tname,
                     exposed = %candidate,
@@ -128,7 +128,7 @@ pub fn build_from_introspection(db: IntrospectedDb) -> SchemaBuilder {
             // 这种便利关联价值有限，列才是本体，冲突时让列赢。
             if column_names.contains(name.as_str()) {
                 tracing::warn!(
-                    target: "vision_graphql::merge",
+                    target: "viate_graphql::merge",
                     table = %exposed,
                     name = %name,
                     "skipping FK auto-relation: name collides with a column of the same name"
@@ -221,7 +221,7 @@ pub fn apply_config(
         for col in &pk {
             if t.find_column(col).is_none() {
                 tracing::warn!(
-                    target: "vision_graphql::merge",
+                    target: "viate_graphql::merge",
                     table = %new_exposed,
                     column = %col,
                     "primary_key names a column the table does not expose; _by_pk on it will fail"
@@ -322,7 +322,7 @@ pub fn derive_relations_from_fks(db: &IntrospectedDb) -> Vec<(String, String, Re
             let count = *pair_counts.get(&key).unwrap_or(&0);
             if count != 1 {
                 tracing::warn!(
-                    target: "vision_graphql::merge",
+                    target: "viate_graphql::merge",
                     from = %t.name,
                     to = %fk.to_table,
                     fks = count,

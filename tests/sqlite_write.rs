@@ -1,7 +1,7 @@
 //! Mutations on SQLite, against a real in-memory database.
 //!
 //! A mutation here is a sequence of statements in one transaction (see
-//! `vision_graphql::plan`); what these tests pin is that the sequence answers
+//! `viate_graphql::plan`); what these tests pin is that the sequence answers
 //! as PostgreSQL's one statement does — the same `affected_rows`, the same
 //! `returning`, the same scope guard — and that a failure part-way leaves
 //! nothing behind.
@@ -10,9 +10,9 @@
 
 use serde_json::{json, Value};
 use sqlx::sqlite::{SqlitePool, SqlitePoolOptions};
-use vision_graphql::ast::{BoolExpr, CmpOp};
-use vision_graphql::sqlite::connect_options;
-use vision_graphql::{Engine, Error, Mutation, Schema, ScopeSet};
+use viate_graphql::ast::{BoolExpr, CmpOp};
+use viate_graphql::sqlite::connect_options;
+use viate_graphql::{Engine, Error, Mutation, Schema, ScopeSet};
 
 const DDL: &str = r#"
 CREATE TABLE users (
@@ -316,7 +316,7 @@ async fn a_conflict_that_inserts_nothing_inserts_no_children_either() {
     let err = e
         .run(
             Mutation::insert("users", vec![Default::default()]).on_conflict(
-                vision_graphql::ast::OnConflict {
+                viate_graphql::ast::OnConflict {
                     constraint: "users_pkey".into(),
                     update_columns: Vec::new(),
                     where_: None,
@@ -427,7 +427,7 @@ async fn scope_guards_every_write() {
         matches!(&err, Error::ScopeViolation { table, rows: 1, .. } if table == "posts"),
         "{err:?}"
     );
-    assert_eq!(err.code(), vision_graphql::ErrorCode::ScopeDenied);
+    assert_eq!(err.code(), viate_graphql::ErrorCode::ScopeDenied);
     assert_eq!(count(&e, "posts").await, 4);
     // A nested child out of scope fails the whole thing.
     let err = scoped
@@ -511,7 +511,7 @@ async fn compiled_persisted_builder_and_transactions() {
     let v = q(&e, "{ posts_by_pk(id: 3) { views } }").await;
     assert_eq!(v["posts_by_pk"]["views"], json!(20));
 
-    let reg = vision_graphql::QueryRegistry::compile_all(
+    let reg = viate_graphql::QueryRegistry::compile_all(
         &e,
         [(
             "del",

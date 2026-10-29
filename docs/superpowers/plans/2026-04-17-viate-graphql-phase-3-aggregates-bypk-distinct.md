@@ -1,4 +1,4 @@
-# Vision-GraphQL Phase 3 — Aggregates, By-PK, Distinct-On Implementation Plan
+# Viate-GraphQL Phase 3 — Aggregates, By-PK, Distinct-On Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -757,7 +757,7 @@ fn render_bool_expr_no_alias(
 Run: `INSTA_UPDATE=always cargo test --lib sql::tests`
 Expected: snapshots accepted.
 
-Inspect: `cat src/snapshots/vision_graphql__sql__tests__render_aggregate_count_and_sum.snap`
+Inspect: `cat src/snapshots/viate_graphql__sql__tests__render_aggregate_count_and_sum.snap`
 
 Expected shape (substrings):
 - `json_build_object('aggregate', json_build_object('count', count(*), 'sum', json_build_object('id', sum(...))), 'nodes', coalesce(json_agg(json_build_object('name', ...)), '[]'::json))`
@@ -1046,8 +1046,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{PgType, Schema, Table};
+use viate_graphql::Engine;
 
 fn schema() -> Schema {
     Schema::builder()
@@ -1350,7 +1350,7 @@ fn render_by_pk(
 Run: `INSTA_UPDATE=always cargo test --lib sql::tests::render_by_pk_single_col`
 Expected: snapshot accepted.
 
-Inspect: `cat src/snapshots/vision_graphql__sql__tests__render_by_pk_single_col.snap`
+Inspect: `cat src/snapshots/viate_graphql__sql__tests__render_by_pk_single_col.snap`
 
 Expected: contains `row_to_json(r...)`, `FROM "public"."users" t... WHERE t....id = $1 LIMIT 1`.
 
@@ -1543,8 +1543,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{PgType, Schema, Table};
+use viate_graphql::Engine;
 
 fn schema() -> Schema {
     Schema::builder()
@@ -1843,8 +1843,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{PgType, Schema, Table};
+use viate_graphql::Engine;
 
 fn schema() -> Schema {
     Schema::builder()

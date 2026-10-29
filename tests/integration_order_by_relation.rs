@@ -4,9 +4,9 @@
 //! assert the database accepts that SQL and sorts rows the way the query asked.
 
 use serde_json::{json, Value};
-use vision_graphql::ast::{BoolExpr, CmpOp};
-use vision_graphql::schema::{ColumnType, Relation, Schema, Table};
-use vision_graphql::{Engine, ScopeSet};
+use viate_graphql::ast::{BoolExpr, CmpOp};
+use viate_graphql::schema::{ColumnType, Relation, Schema, Table};
+use viate_graphql::{Engine, ScopeSet};
 
 mod common;
 

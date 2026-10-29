@@ -1,7 +1,7 @@
 //! What a failed request looks like on the wire, and what it does not say.
 
-use vision_graphql::error::ErrorCode;
-use vision_graphql::{Engine, Schema};
+use viate_graphql::error::ErrorCode;
+use viate_graphql::{Engine, Schema};
 
 mod common;
 
@@ -109,7 +109,7 @@ async fn a_hidden_column_is_reported_as_unknown_not_as_hidden() {
         .await
         .unwrap();
 
-    let cfg = vision_graphql::schema::config::parse(
+    let cfg = viate_graphql::schema::config::parse(
         r#"
         [tables.users]
         hide_columns = ["secret_ssn"]

@@ -16,7 +16,7 @@ pub struct IntrospectedDb {
     /// from the outside: the column is not in the schema, so a query naming it
     /// says "unknown column" as if it never existed — and if the dropped column
     /// is part of a key or a foreign key, `_by_pk` or a whole relation goes
-    /// missing with it. `vision-gql diff` reports these.
+    /// missing with it. `viate-gql diff` reports these.
     pub skipped_columns: Vec<SkippedColumn>,
     /// The schemas that were asked for, in the order they were asked for.
     ///
@@ -210,7 +210,7 @@ pub async fn introspect_schemas(pool: &PgPool, schemas: &[&str]) -> Result<Intro
         };
         let Some(ty) = ty else {
             tracing::warn!(
-                target: "vision_graphql::introspect",
+                target: "viate_graphql::introspect",
                 table = %tname,
                 column = %cname,
                 data_type = %dtype,
@@ -315,7 +315,7 @@ pub async fn introspect_schemas(pool: &PgPool, schemas: &[&str]) -> Result<Intro
         };
         let Some(ty) = ty else {
             tracing::warn!(
-                target: "vision_graphql::introspect",
+                target: "viate_graphql::introspect",
                 table = %tname,
                 column = %cname,
                 data_type = %dtype,
@@ -509,7 +509,7 @@ pub async fn introspect_schemas(pool: &PgPool, schemas: &[&str]) -> Result<Intro
     for want in &wanted {
         if !db.tables.keys().any(|(s, _)| s == want) {
             tracing::warn!(
-                target: "vision_graphql::introspect",
+                target: "viate_graphql::introspect",
                 schema = %want,
                 "introspected schema contains no tables; check the name exists and is readable"
             );

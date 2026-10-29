@@ -1,6 +1,6 @@
 use serde_json::Value;
-use vision_graphql::schema::Schema;
-use vision_graphql::Engine;
+use viate_graphql::schema::Schema;
+use viate_graphql::Engine;
 
 mod common;
 
@@ -81,7 +81,7 @@ async fn unique_index_counts_for_warnings_partial_does_not() {
     .await
     .expect("seed");
 
-    let cfg = vision_graphql::schema::config::parse(
+    let cfg = viate_graphql::schema::config::parse(
         r#"
         [[tables.refs.relations]]
         name = "half"
@@ -100,7 +100,7 @@ async fn unique_index_counts_for_warnings_partial_does_not() {
     let warnings = schema.warnings();
     assert_eq!(warnings.len(), 1, "got {warnings:?}");
     match &warnings[0] {
-        vision_graphql::SchemaWarning::NonDeterministicObjectRelation {
+        viate_graphql::SchemaWarning::NonDeterministicObjectRelation {
             table, relation, ..
         } => assert_eq!((table.as_str(), relation.as_str()), ("refs", "half")),
         other => panic!("unexpected warning: {other:?}"),

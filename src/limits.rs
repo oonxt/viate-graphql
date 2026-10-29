@@ -195,7 +195,7 @@ fn skip_string(b: &[u8], i: usize) -> usize {
 /// from clients.
 ///
 /// ```
-/// # use vision_graphql::limits::ExecutionLimits;
+/// # use viate_graphql::limits::ExecutionLimits;
 /// let limits = ExecutionLimits::new()
 ///     .max_relation_depth(6)
 ///     .max_table_reads(40)

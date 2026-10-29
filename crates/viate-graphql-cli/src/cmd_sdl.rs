@@ -41,7 +41,7 @@ pub async fn run(args: Args) -> Result<()> {
     }
 
     let schema = builder.build();
-    let sdl = vision_graphql::sdl::render(schema.type_system());
+    let sdl = viate_graphql::sdl::render(schema.type_system());
 
     if args.check {
         let path = match &args.output {

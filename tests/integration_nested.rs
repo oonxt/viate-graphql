@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
-use vision_graphql::schema::{ColumnType, Relation, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{ColumnType, Relation, Schema, Table};
+use viate_graphql::Engine;
 
 mod common;
 

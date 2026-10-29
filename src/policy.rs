@@ -9,9 +9,9 @@
 //! obtain a concrete [`ScopeSet`] for [`crate::Engine::scoped`].
 //!
 //! ```
-//! use vision_graphql::predicate::{col, principal};
-//! use vision_graphql::policy::ScopePolicy;
-//! # use vision_graphql::schema::{Schema, Table, ColumnType, Relation};
+//! use viate_graphql::predicate::{col, principal};
+//! use viate_graphql::policy::ScopePolicy;
+//! # use viate_graphql::schema::{Schema, Table, ColumnType, Relation};
 //! # let schema = Schema::builder()
 //! #     .table(Table::new("orders", "public", "orders")
 //! #         .column("id", "id", ColumnType::Int4, false)

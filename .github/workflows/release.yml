@@ -28,8 +28,8 @@ jobs:
         run: |
           tag="${GITHUB_REF_NAME#v}"
           lib=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
-          cli=$(grep -m1 '^version' crates/vision-graphql-cli/Cargo.toml | cut -d'"' -f2)
-          dep=$(grep -m1 'vision-graphql.*version = ' crates/vision-graphql-cli/Cargo.toml | sed 's/.*version = "\([^"]*\)".*/\1/')
+          cli=$(grep -m1 '^version' crates/viate-graphql-cli/Cargo.toml | cut -d'"' -f2)
+          dep=$(grep -m1 'viate-graphql.*version = ' crates/viate-graphql-cli/Cargo.toml | sed 's/.*version = "\([^"]*\)".*/\1/')
           echo "tag $tag / lib $lib / cli $cli / cli's dep on lib $dep"
           test "$tag" = "$lib" || { echo "tag and library version differ"; exit 1; }
           test "$tag" = "$cli" || { echo "tag and CLI version differ"; exit 1; }
@@ -76,7 +76,7 @@ jobs:
     # Trusted Publishing: crates.io mints a short-lived token against this
     # workflow's OIDC identity, so no long-lived registry token lives in the
     # repository's secrets. One-time setup per crate, on crates.io under
-    # Settings → Trusted Publishing: repository `oonxt/vision-graphql`,
+    # Settings → Trusted Publishing: repository `oonxt/viate-graphql`,
     # workflow `release.yml`, environment `release`.
     permissions:
       id-token: write
@@ -88,9 +88,9 @@ jobs:
       # Library first: the CLI depends on it at this exact version, and cargo
       # waits for the first publish to be visible in the index before the
       # second resolves against it.
-      - run: cargo publish -p vision-graphql
+      - run: cargo publish -p viate-graphql
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
-      - run: cargo publish -p vision-graphql-cli
+      - run: cargo publish -p viate-graphql-cli
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}

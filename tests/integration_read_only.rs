@@ -8,8 +8,8 @@
 //! it wrote a row into `users`. These tests pin that shut.
 
 use serde_json::Value;
-use vision_graphql::schema::Schema;
-use vision_graphql::Engine;
+use viate_graphql::schema::Schema;
+use viate_graphql::Engine;
 
 mod common;
 
@@ -265,7 +265,7 @@ async fn nested_insert_into_read_only_target_is_rejected() {
 /// row straight into `users` through the view.
 #[tokio::test]
 async fn builder_path_cannot_write_to_a_read_only_table() {
-    use vision_graphql::Mutation;
+    use viate_graphql::Mutation;
 
     let (pool, _db) = pool_with_views().await;
     let schema = Schema::introspect(&pool).await.expect("introspect").build();

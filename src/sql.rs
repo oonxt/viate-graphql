@@ -754,7 +754,7 @@ struct ListSource<'a> {
 /// The column an `order_by` term that walks a relation is carried out of
 /// the page's derived table as, numbered by the term's position. Prefixed
 /// and unquoted, like [`DISTINCT_ROW_NUMBER`].
-const ORDER_EXPORT: &str = "__vision_graphql_ob";
+const ORDER_EXPORT: &str = "__viate_graphql_ob";
 
 /// `DISTINCT ON (cols) ` where the dialect spells `distinct_on` inline; the
 /// caller renders the window form elsewhere.
@@ -967,7 +967,7 @@ fn render_list_source(
 /// The column the window form of `distinct_on` numbers rows by. Prefixed so
 /// it cannot be a column of the table; unquoted, so it is spelled the same
 /// whatever the dialect quotes identifiers with.
-const DISTINCT_ROW_NUMBER: &str = "__vision_graphql_rn";
+const DISTINCT_ROW_NUMBER: &str = "__viate_graphql_rn";
 
 /// The `distinct_on` columns, comma-separated and qualified.
 fn render_distinct_on_columns(
@@ -2611,7 +2611,7 @@ fn emit_scope_guard(
     render_bool_expr(check, table, cte, schema, ctx)?;
     write!(
         ctx.sql,
-        "), true) THEN 0 ELSE CAST('vision_graphql: scope check violation on \"{}\" (' || count(*)::text || ' rows) {action} outside scope' AS integer) END AS ok FROM {cte})",
+        "), true) THEN 0 ELSE CAST('viate_graphql: scope check violation on \"{}\" (' || count(*)::text || ' rows) {action} outside scope' AS integer) END AS ok FROM {cte})",
         table.exposed_name
     )
     .unwrap();
@@ -4910,7 +4910,7 @@ mod tests {
         insta::assert_snapshot!(joined);
         assert!(
             joined.contains(
-                r#"FROM (SELECT t0."id", ob2."name" AS __vision_graphql_ob0 FROM "public"."posts" t0 LEFT JOIN "public"."users" AS ob2 ON ob2."id" = t0."user_id" ORDER BY ob2."name" DESC NULLS LAST, t0."id" ASC LIMIT 10 OFFSET 20) t0 ORDER BY t0.__vision_graphql_ob0 DESC NULLS LAST, t0."id" ASC) r1"#
+                r#"FROM (SELECT t0."id", ob2."name" AS __viate_graphql_ob0 FROM "public"."posts" t0 LEFT JOIN "public"."users" AS ob2 ON ob2."id" = t0."user_id" ORDER BY ob2."name" DESC NULLS LAST, t0."id" ASC LIMIT 10 OFFSET 20) t0 ORDER BY t0.__viate_graphql_ob0 DESC NULLS LAST, t0."id" ASC) r1"#
             ),
             "{joined}"
         );
@@ -4930,7 +4930,7 @@ mod tests {
         // in the outer ORDER BY.
         assert_eq!(sql.matches("(SELECT ob").count(), 2, "{sql}");
         assert!(
-            sql.contains(r#"LIMIT 10 OFFSET 20) t0 ORDER BY t0.__vision_graphql_ob0 ASC) r1"#),
+            sql.contains(r#"LIMIT 10 OFFSET 20) t0 ORDER BY t0.__viate_graphql_ob0 ASC) r1"#),
             "{sql}"
         );
     }
@@ -6561,11 +6561,11 @@ mod tests {
             assert!(!sql.contains("(SELECT ob"), "{sql}");
             assert_eq!(sql.matches("LEFT JOIN").count(), 1, "{sql}");
             assert_eq!(
-                sql.matches("t0.__vision_graphql_ob1 DESC").count(),
+                sql.matches("t0.__viate_graphql_ob1 DESC").count(),
                 2,
                 "{sql}"
             );
-            assert!(sql.contains("WHERE t0.__vision_graphql_rn = 1 ORDER BY t0.\"user_id\" ASC NULLS LAST, t0.__vision_graphql_ob1 DESC NULLS FIRST LIMIT 2 OFFSET 1) t0 ORDER BY"), "{sql}");
+            assert!(sql.contains("WHERE t0.__viate_graphql_rn = 1 ORDER BY t0.\"user_id\" ASC NULLS LAST, t0.__viate_graphql_ob1 DESC NULLS FIRST LIMIT 2 OFFSET 1) t0 ORDER BY"), "{sql}");
         }
     }
 }

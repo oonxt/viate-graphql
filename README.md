@@ -1,4 +1,4 @@
-# vision-graphql
+# viate-graphql
 
 A Hasura-style GraphQL-to-SQL query engine for PostgreSQL and SQLite, in Rust. Accepts GraphQL query strings (or a typed Rust builder) and returns `serde_json::Value` in Hasura's data shape. Single SQL per request via the database's JSON aggregation (`json_agg`/`row_to_json`, `json_group_array`/`json_object`) — no N+1. See [Backends](#backends).
 
@@ -6,7 +6,7 @@ A Hasura-style GraphQL-to-SQL query engine for PostgreSQL and SQLite, in Rust. A
 
 ```rust
 use sqlx::postgres::PgPoolOptions;
-use vision_graphql::{Engine, Query, Schema};
+use viate_graphql::{Engine, Query, Schema};
 
 # async fn example() -> anyhow::Result<()> {
 // Any sqlx PgPool works — share the one your app already has.
@@ -78,14 +78,14 @@ envelope for multi-root GraphQL strings. The untyped `query`/`run` returning
 | Field aliases (`abundance: data`) | ✓ |
 | `__typename` in every selection set | ✓ |
 | Schema introspection (`__schema` / `__type`), off by default | ✓ |
-| SDL export (`vision-gql sdl`, `--check` for CI) | ✓ |
+| SDL export (`viate-gql sdl`, `--check` for CI) | ✓ |
 | JSON/JSONB path reads (`data(path: "a.b")` → `#>` / SQLite `->`, keeps structure) | ✓ |
 | GraphQL variables (incl. declared defaults, `query($n: Int = 10)`), named + inline fragments | ✓ |
 | `operationName` (`query_with` / `query_as_with`, on every handle) | ✓ |
 | GraphQL-shaped errors (`Error::to_graphql_response`, `Error::code`) | ✓ |
 | Multiple schemas in one Schema (`Schema::introspect_schemas`), incl. cross-schema FK relations | ✓ (PostgreSQL; a SQLite file has one) |
 | PG enum / `date` / `time` / `timetz` / `smallint` / `character(n)` columns (enum casts are schema-qualified) | ✓ |
-| Array, `bytea`, `interval`, `inet` columns | Not mapped — left out of the schema, and reported by `vision-gql diff` |
+| Array, `bytea`, `interval`, `inet` columns | Not mapped — left out of the schema, and reported by `viate-gql diff` |
 | TOML config overlay (`expose_as`, `schema`, `hide_columns`, manual relations) | ✓ |
 | Typed Rust builder API | ✓ |
 | Typed results: `run_as::<T>` / `query_as::<T>` / `MutationResult<T>` | ✓ |
@@ -120,7 +120,7 @@ and left, not forgotten.
 | `distinct_on` on an `_aggregate` | The aggregate's source does not render it, so it is refused rather than dropped, and not published. `count(columns: […], distinct: true)` counts distinct values. |
 | Fragments inside an `_aggregate` selection | The `aggregate`/`nodes` keys are matched literally; a fragment there is refused. `nodes` itself is a full row selection — relations included — and takes fragments like any other. |
 | `_regex`, `_similar`, array operators, jsonb `_cast` | The operators listed above are the ones the lowering implements — and the ones introspection publishes, deliberately. |
-| Array, `bytea`, `interval`, `inet` columns | No type mapping: the column is left out of the schema, and `vision-gql diff` reports it. |
+| Array, `bytea`, `interval`, `inet` columns | No type mapping: the column is left out of the schema, and `viate-gql diff` reports it. |
 | PG enum values | The type is published as a named scalar, not a GraphQL enum: introspection reads the type's name but not its variants. |
 | Nested insert / relation `returning` from the typed builder | The GraphQL path has both. |
 | Computed fields, subscriptions | Not planned. |
@@ -135,17 +135,17 @@ what it always was. SQLite is behind the `sqlite` cargo feature, MySQL behind
 `mysql`.
 
 ```toml
-vision-graphql = { version = "0.27", features = ["sqlite", "mysql"] }
+viate-graphql = { version = "0.27", features = ["sqlite", "mysql"] }
 ```
 
 ```rust
 # #[cfg(feature = "sqlite")]
 # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-use vision_graphql::{Engine, Schema};
+use viate_graphql::{Engine, Schema};
 
 // The pragmas the engine's SQL relies on, on every connection of the pool.
 let pool = sqlx::sqlite::SqlitePoolOptions::new()
-    .connect_with(vision_graphql::sqlite::connect_options("sqlite://app.db")?)
+    .connect_with(viate_graphql::sqlite::connect_options("sqlite://app.db")?)
     .await?;
 let schema = Schema::introspect_sqlite(&pool).await?.build();
 let engine = Engine::new(pool, schema); // Engine<sqlx::Sqlite>
@@ -155,10 +155,10 @@ let engine = Engine::new(pool, schema); // Engine<sqlx::Sqlite>
 ```rust
 # #[cfg(feature = "mysql")]
 # async fn example() -> Result<(), Box<dyn std::error::Error>> {
-use vision_graphql::{Engine, Schema};
+use viate_graphql::{Engine, Schema};
 
 let pool = sqlx::mysql::MySqlPoolOptions::new()
-    .connect_with(vision_graphql::mysql::connect_options("mysql://app:secret@db/app")?)
+    .connect_with(viate_graphql::mysql::connect_options("mysql://app:secret@db/app")?)
     .await?;
 let schema = Schema::introspect_mysql(&pool).await?.build();
 let engine = Engine::new(pool, schema); // Engine<sqlx::MySql>
@@ -187,18 +187,18 @@ anyway gets `Error::Unsupported` (`UNSUPPORTED`).
 | `_ilike` / `_nilike` | `lower(x) LIKE lower(y)`: ASCII case folding, where PostgreSQL folds Unicode. |
 | Booleans, JSON columns | Come back as JSON booleans and JSON values. (SQLite holds `0`/`1` and text; the renderer converts at the point the value enters `json_object`.) |
 | Column types | Read from the declared type the way SQLite's affinity rules do: every integer is `bigint` (SQLite integers are 64-bit whatever the declaration), `BOOLEAN` → `Boolean`, `REAL` / `FLOAT` / `DOUBLE` → `Float`, `TEXT` / `CHAR` / `CLOB` → `String`, `JSON` / `JSONB`, `DATE` / `TIME` / `DATETIME` / `TIMESTAMP` and `UUID` as text-backed scalars compared as text — store ISO 8601 or the ordering is not chronological. |
-| `NUMERIC` / `DECIMAL`, `BLOB`, no declared type | Left out of the schema and recorded as skipped columns (`vision-gql diff` reports them, `schema::introspect_sqlite::introspect` returns them): SQLite holds a `NUMERIC` as a double, and a sum that is wrong past the fifteenth digit is the wrong kind of wrong. Declare `REAL` to publish a float knowingly. |
+| `NUMERIC` / `DECIMAL`, `BLOB`, no declared type | Left out of the schema and recorded as skipped columns (`viate-gql diff` reports them, `schema::introspect_sqlite::introspect` returns them): SQLite holds a `NUMERIC` as a double, and a sum that is wrong past the fifteenth digit is the wrong kind of wrong. Declare `REAL` to publish a float knowingly. |
 | Tables that are not `STRICT` | Introspected, with a `SchemaWarning::LooselyTypedTable`: the database does not enforce the declared types, so a `'abc'` in an `INTEGER` column reaches the client as a string. A `BOOLEAN` or `JSON` column holding something else is an error (`SQLite reports malformed JSON: …`), not a null. |
 | JSON path components | A component that is all digits indexes an array; PostgreSQL's `#>` would also accept it as an object key. |
 | Foreign keys | Enforcement is per connection (`PRAGMA foreign_keys`); `connect_options` turns it on and introspection refuses a pool where it is off. Relations are derived from the declarations either way. |
 | Multiple schemas | Only `main`; attached databases are not walked. |
-| Mutations | Implemented as a **sequence of statements in one transaction** (`vision_graphql::plan`): SQLite allows no DML inside a CTE, so each object is its own `INSERT … RETURNING`, nested rows follow their parent with its key bound in, scope guards are `SELECT count(*)` over the rows just written, and the response is assembled from what came back. The same `affected_rows` (nested rows counted), the same `returning` (read back after the writes, relations included), the same guard (a violation anywhere undoes everything). Atomic on the pool, in `Engine::transaction`, and inside a caller's transaction through the `_on` twins (a savepoint). |
+| Mutations | Implemented as a **sequence of statements in one transaction** (`viate_graphql::plan`): SQLite allows no DML inside a CTE, so each object is its own `INSERT … RETURNING`, nested rows follow their parent with its key bound in, scope guards are `SELECT count(*)` over the rows just written, and the response is assembled from what came back. The same `affected_rows` (nested rows counted), the same `returning` (read back after the writes, relations included), the same guard (a violation anywhere undoes everything). Atomic on the pool, in `Engine::transaction`, and inside a caller's transaction through the `_on` twins (a savepoint). |
 | Mutations: what differs | Later fields of one mutation see earlier fields' writes, and `returning { relation }` sees every related row, where PostgreSQL's CTEs share one snapshot. A column an object leaves out gets its default (the one-statement form writes NULL for a column another object in the batch set), and an object with no values at all cannot take `on_conflict`. Rows are identified by `rowid`: a `WITHOUT ROWID` table cannot be written (SQLite: `no such column: rowid`). A deleted row's `returning` is read just before the delete, relations included. |
 | `on_conflict` | `constraint` names a unique constraint as on PostgreSQL — SQLite's auto-names (`sqlite_autoindex_t_1`), a `CREATE UNIQUE INDEX` name, or `<table>_pkey` for the primary key — and is resolved to its columns, which is what SQLite's `ON CONFLICT (…)` takes. `update_columns`, `where` and `DO NOTHING` as on PostgreSQL; a nested `DO NOTHING` is a no-op update so the row's key is still returned for its dependants. |
 | `stddev*` / `var*` | SQLite has no statistical aggregates. Not published, refused. |
 | Comparisons and grouping on `JSON` / `JSONB` columns | Only `_is_null` is published. On a `JSONB` column `_eq`, `_neq`, `_in` and `_nin` are refused as unsupported, as are the jsonb operators (`_contains`, `_has_key`, …), `distinct_on` over a JSON column and `count(columns: […], distinct: true)` of one; a plain `count(columns: […])` still counts. (A `json` column has no equality on either backend, so its `_eq` is a validation error.) SQLite has no JSON type, only text: `json()` and `jsonb()` keep key order, so `{"a":1,"b":2}` and `{"b":2,"a":1}` compare unequal there, and `1.0` unequal to `1`, where PostgreSQL's `jsonb` calls both equal. Filter on a JSON value by reading it with a `path` in the application, or keep the column on PostgreSQL. |
 | `count(columns: [a, b])` | Refused: SQLite rejects a row value as an aggregate's argument, and there is no other one-expression spelling of distinct pairs. One column, or `count(*)`. |
-| `vision-gql` CLI | `generate`, `diff` and `sdl` take a `sqlite://` URL. `diff` reports skipped columns (`NUMERIC`, `BLOB`, untyped) as on PostgreSQL; a table that is not `STRICT` is warned about. |
+| `viate-gql` CLI | `generate`, `diff` and `sdl` take a `sqlite://` URL. `diff` reports skipped columns (`NUMERIC`, `BLOB`, untyped) as on PostgreSQL; a table that is not `STRICT` is warned about. |
 | Version | 3.38 or later (`->`, built-in JSON functions); checked at introspection and before the engine's first statement. sqlx bundles 3.51. |
 
 
@@ -225,12 +225,12 @@ MariaDB is refused (its JSON is text, and it has no `JSON_TABLE`).
 | Unsigned integers | `Int8` whatever the width. A `BIGINT UNSIGNED` value above `i64::MAX` reaches the response intact (it is a JSON number) and cannot be bound as a filter value. |
 | `ENUM` | Text. `SET`, `BIT`, the binary and blob types and the spatial types are left out of the schema and recorded as skipped columns. |
 | `count(columns: [a, b])` | `distinct: true` is `COUNT(DISTINCT a, b)`; without it MySQL has no spelling for the count of pairs, and it is refused. |
-| Mutations | Implemented as a **sequence of statements in one transaction** (`vision_graphql::plan`), with rows identified by **primary key** — a table written through the engine must have one, and a key with a column the engine leaves out (a `VARBINARY`, say) is no key; `insert`, `update` and `delete` on a table without one are refused. An insert is followed by a read of the row it wrote (MySQL has no `RETURNING`): by the key the object supplied, the key its parent lent it, or `LAST_INSERT_ID()` for a single integer key it left out — any other generated key (a `CHAR(36)` with `DEFAULT (UUID())`, say) has to be supplied. An update or delete selects the keys of the rows it will touch first (`FOR UPDATE OF` the table, locking its rows and not those a relation filter read), then writes by key; an update reads the rows back, so `affected_rows` counts matched rows as PostgreSQL does, and a `delete` whose filter reaches its own table through a relation works where MySQL's own `DELETE` would not. Atomic on the pool, in `Engine::transaction`, and inside a caller's transaction through the `_on` twins (a savepoint). |
+| Mutations | Implemented as a **sequence of statements in one transaction** (`viate_graphql::plan`), with rows identified by **primary key** — a table written through the engine must have one, and a key with a column the engine leaves out (a `VARBINARY`, say) is no key; `insert`, `update` and `delete` on a table without one are refused. An insert is followed by a read of the row it wrote (MySQL has no `RETURNING`): by the key the object supplied, the key its parent lent it, or `LAST_INSERT_ID()` for a single integer key it left out — any other generated key (a `CHAR(36)` with `DEFAULT (UUID())`, say) has to be supplied. An update or delete selects the keys of the rows it will touch first (`FOR UPDATE OF` the table, locking its rows and not those a relation filter read), then writes by key; an update reads the rows back, so `affected_rows` counts matched rows as PostgreSQL does, and a `delete` whose filter reaches its own table through a relation works where MySQL's own `DELETE` would not. Atomic on the pool, in `Engine::transaction`, and inside a caller's transaction through the `_on` twins (a savepoint). |
 | Mutations: what differs | As on SQLite: later fields of one mutation see earlier fields' writes, `returning { relation }` sees every related row, a column an object leaves out gets its default. An `AUTO_INCREMENT` value MySQL handed to a write that then conflicted or rolled back is never handed out again, so ids after such a write are not contiguous. |
 | `on_conflict` | `ON DUPLICATE KEY UPDATE … = new.…`, which MySQL fires on **any** unique key, not only the constraint named (the name is checked to exist). The row is read back by the object's key or by the constraint's columns, whichever found it; an object that conflicts with two rows by two keys — which PostgreSQL refuses — is refused after the fact and undone. A top-level `update_columns: []` is an insert conditional on no row with the constraint's values existing: nothing inserted, nothing counted, no children, as `DO NOTHING` (the probe reads the table whole, as PostgreSQL's `DO NOTHING` does; `affected_rows` tells the caller the same thing either way). A nested `update_columns: []` is a no-op update, and the existing row's key is read back for its dependants (`LAST_INSERT_ID(key)`). An `on_conflict` `where` is refused: MySQL has nothing that leaves a conflicting row unreturned when the condition fails. |
 | `_set` on a primary key column | Refused: the rows of an update are picked, guarded and read back by their key. |
 | `order_by` through a relation no key pins | The correlated subquery is evaluated up to four times per row (twice for the NULL order, twice more to number the rows); in a list that reads a derived table (`limit` / `offset`, or `distinct_on`), three times inside it, and the levels above read the result as a column. Keyed relations are joined and cost one lookup. |
-| `vision-gql` CLI | `generate`, `diff` and `sdl` take a `mysql://user:pass@host/db` URL and introspect the database it names; `--schema` is refused. |
+| `viate-gql` CLI | `generate`, `diff` and `sdl` take a `mysql://user:pass@host/db` URL and introspect the database it names; `--schema` is refused. |
 | Version | 8.0.19 or later (`JSON_TABLE`, the window form of `JSON_ARRAYAGG`, the `AS new` alias of an upsert); checked at introspection and before the engine's first statement, as is `sql_mode` (`NO_BACKSLASH_ESCAPES` is refused: the rendered SQL escapes a backslash in a literal as `\\`). |
 
 ## JSON/JSONB path reads
@@ -301,8 +301,8 @@ lowering, schema resolution, scope rewriting, SQL generation — and hands back 
 `CompiledQuery`. `Engine::execute` supplies the variables and runs it.
 
 ```rust
-# use vision_graphql::{Engine, ScopePolicy, predicate::{col, principal, Principal}};
-# async fn example(engine: Engine, schema: vision_graphql::Schema) -> vision_graphql::error::Result<()> {
+# use viate_graphql::{Engine, ScopePolicy, predicate::{col, principal, Principal}};
+# async fn example(engine: Engine, schema: viate_graphql::Schema) -> viate_graphql::error::Result<()> {
 // once, at startup
 let q = engine.compile(
     "query($ids: [Int!], $n: Int!) { users(where: {id: {_in: $ids}}, limit: $n) { id name } }",
@@ -421,7 +421,7 @@ was written; `"12345678901234567890.12"` is carried through exactly.
 the schema entirely — a query naming one is told it does not exist, and if the
 dropped column belongs to a key or a foreign key, a `_by_pk` field or a whole
 relation goes missing with it. That used to be a log line and nothing else;
-`vision-gql diff` now reports them:
+`viate-gql diff` now reports them:
 
 ```
 not exposed (no type mapping — these columns are absent from the schema):
@@ -438,7 +438,7 @@ and bound as a string; its casts are schema-qualified.
 Three layers that merge (later wins):
 
 1. **Introspection** — `Schema::introspect(&pool).await?` queries `information_schema` and auto-derives relations from foreign keys. It reads `public`; use `Schema::introspect_schemas(&pool, &["app", "audit"]).await?` for more (see below).
-2. **TOML overlay** — `.load_config("schema.toml")?` applies renames, hidden columns, and manual relations. Run `vision-gql generate` to bootstrap a starter file from a live DB.
+2. **TOML overlay** — `.load_config("schema.toml")?` applies renames, hidden columns, and manual relations. Run `viate-gql generate` to bootstrap a starter file from a live DB.
 3. **Builder** — `.table(...)` / `.relation(...)` / `.expose_as(...)` for final touches before `.build()`.
 
 Example TOML:
@@ -469,7 +469,7 @@ let schema = Schema::introspect_sqlite(&pool).await?
 A scope policy that names a removed table fails to build, like any unknown
 table. On SQLite this is the way to keep an application's own bookkeeping
 tables out of the API: everything shares `main`, and the `sqlite_` prefix
-that introspection skips is reserved. `vision-gql sdl --include-tables` /
+that introspection skips is reserved. `viate-gql sdl --include-tables` /
 `--ignore-tables` narrow the schema through the same call.
 
 ### Keys on views, and ordering through a relation
@@ -551,15 +551,15 @@ atomic.
 
 ## CLI
 
-`vision-graphql-cli` ships a `vision-gql` binary that bootstraps and validates
+`viate-graphql-cli` ships a `viate-gql` binary that bootstraps and validates
 overlay files against a live database.
 
 ```bash
-cargo install vision-graphql-cli
-vision-gql generate --url postgres://localhost/myapp > schema.toml
-vision-gql diff     --url mysql://app:secret@localhost/myapp --config schema.toml
-vision-gql validate schema.toml
-vision-gql sdl      --url sqlite://app.db --output schema.graphql
+cargo install viate-graphql-cli
+viate-gql generate --url postgres://localhost/myapp > schema.toml
+viate-gql diff     --url mysql://app:secret@localhost/myapp --config schema.toml
+viate-gql validate schema.toml
+viate-gql sdl      --url sqlite://app.db --output schema.graphql
 ```
 
 The URL picks the database: `postgres://…`, `mysql://user:pass@host/db`, or
@@ -589,7 +589,7 @@ queries, or by extending the mapping until a unique constraint covers it.
 Filter what gets processed with comma-separated globs:
 
 ```bash
-vision-gql generate --url $DATABASE_URL --ignore-tables 'audit_*,_temp_*'
+viate-gql generate --url $DATABASE_URL --ignore-tables 'audit_*,_temp_*'
 ```
 
 `--schema` selects which Postgres schemas to read (default `public`), with the
@@ -598,7 +598,7 @@ keys in the generated file are the exposed names, so they line up with what the
 overlay resolves against:
 
 ```bash
-vision-gql generate --url $DATABASE_URL --schema app,audit
+viate-gql generate --url $DATABASE_URL --schema app,audit
 ```
 
 Both subcommands accept `$DATABASE_URL` as the default for `--url`. TLS is
@@ -732,9 +732,9 @@ touch. The mechanism is policy-agnostic: how predicates are derived (RBAC,
 ownership chains, …) is up to the application.
 
 ```rust
-# use vision_graphql::{Engine, ScopeSet, Query};
-# use vision_graphql::ast::{BoolExpr, CmpOp};
-# async fn example(engine: Engine, user_id: i64) -> Result<(), vision_graphql::Error> {
+# use viate_graphql::{Engine, ScopeSet, Query};
+# use viate_graphql::ast::{BoolExpr, CmpOp};
+# async fn example(engine: Engine, user_id: i64) -> Result<(), viate_graphql::Error> {
 let scope = ScopeSet::new()
     .allow("orders", BoolExpr::Compare {
         column: "user_id".into(),
@@ -766,9 +766,9 @@ still withhold a column — and they are per request, so one schema serves every
 role:
 
 ```rust
-# use vision_graphql::{ScopePolicy, Schema};
-# use vision_graphql::predicate::{col, principal};
-# fn example(schema: &Schema) -> Result<(), vision_graphql::Error> {
+# use viate_graphql::{ScopePolicy, Schema};
+# use viate_graphql::predicate::{col, principal};
+# fn example(schema: &Schema) -> Result<(), viate_graphql::Error> {
 let policy = ScopePolicy::builder()
     .allow("staff", col("org").eq(principal()))
     .columns("staff", ["id", "org", "name"])   // and nothing else
@@ -803,9 +803,9 @@ varies. `ScopePolicy` captures that shape once, validates it against the schema,
 and binds a principal per request:
 
 ```rust
-# use vision_graphql::{Engine, ScopePolicy, Schema};
-# use vision_graphql::predicate::{col, rel, principal};
-# async fn example(engine: Engine, schema: &Schema, user_id: i64) -> Result<(), vision_graphql::Error> {
+# use viate_graphql::{Engine, ScopePolicy, Schema};
+# use viate_graphql::predicate::{col, rel, principal};
+# async fn example(engine: Engine, schema: &Schema, user_id: i64) -> Result<(), viate_graphql::Error> {
 // once, at startup — `validate` catches typos in table/column/relation names:
 let policy = ScopePolicy::builder()
     .allow("orders", col("user_id").eq(principal()))
@@ -824,9 +824,9 @@ templates whose value slots are filled at bind time. `principal()` is the defaul
 parameter; multi-key scopes use named params:
 
 ```rust
-# use vision_graphql::{ScopePolicy, Principal};
-# use vision_graphql::predicate::{col, param};
-# fn example(policy: &ScopePolicy, tenant: i64, user: i64) -> Result<(), vision_graphql::Error> {
+# use viate_graphql::{ScopePolicy, Principal};
+# use viate_graphql::predicate::{col, param};
+# fn example(policy: &ScopePolicy, tenant: i64, user: i64) -> Result<(), viate_graphql::Error> {
 // policy: .allow("audit_log", and([col("tenant_id").eq(param("tenant_id")),
 //                                   col("actor_id").eq(param("user_id"))]))
 let scope = policy.bind(&Principal::new().set("tenant_id", tenant).set("user_id", user))?;
@@ -842,10 +842,10 @@ column or on a value; `constant(true)` / `constant(false)` are the leaves a
 policy lowers "everything" and "nothing" to:
 
 ```rust
-# use vision_graphql::{ScopePolicy, Schema};
-# use vision_graphql::predicate::{col, constant, or, param, typed};
-# use vision_graphql::schema::ColumnType;
-# fn example(schema: &Schema) -> Result<(), vision_graphql::Error> {
+# use viate_graphql::{ScopePolicy, Schema};
+# use viate_graphql::predicate::{col, constant, or, param, typed};
+# use viate_graphql::schema::ColumnType;
+# fn example(schema: &Schema) -> Result<(), viate_graphql::Error> {
 let policy = ScopePolicy::builder()
     .allow("orders", or([
         typed(param("role"), ColumnType::Text).eq("admin"),        // $role = 'admin'
@@ -869,10 +869,10 @@ validated policy reopens with `into_builder` for this, and `rule(table)` reads
 what a table has:
 
 ```rust
-# use vision_graphql::{ScopePolicy, Schema};
-# use vision_graphql::predicate::{param, typed};
-# use vision_graphql::schema::ColumnType;
-# fn example(schema: &Schema, from_toml: ScopePolicy) -> Result<(), vision_graphql::Error> {
+# use viate_graphql::{ScopePolicy, Schema};
+# use viate_graphql::predicate::{param, typed};
+# use viate_graphql::schema::ColumnType;
+# fn example(schema: &Schema, from_toml: ScopePolicy) -> Result<(), viate_graphql::Error> {
 let policy = from_toml
     .into_builder()
     .and_allow("orders", typed(param("role"), ColumnType::Text).eq("reader"))
@@ -993,8 +993,8 @@ on `json`/`jsonb` columns. The directive list is empty, and a document carrying
 ### `__schema` / `__type` — off by default
 
 ```rust
-# use vision_graphql::Schema;
-# async fn f(pool: sqlx::PgPool) -> vision_graphql::error::Result<()> {
+# use viate_graphql::Schema;
+# async fn f(pool: sqlx::PgPool) -> viate_graphql::error::Result<()> {
 let schema = Schema::introspect(&pool).await?.enable_introspection().build();
 # let _ = schema; Ok(()) }
 ```
@@ -1015,8 +1015,8 @@ variants.
 ### SDL export
 
 ```bash
-vision-gql sdl --url $DATABASE_URL --config schema.toml -o schema.graphql --force
-vision-gql sdl --url $DATABASE_URL --config schema.toml -o schema.graphql --check
+viate-gql sdl --url $DATABASE_URL --config schema.toml -o schema.graphql --force
+viate-gql sdl --url $DATABASE_URL --config schema.toml -o schema.graphql --check
 ```
 
 The exposed surface is otherwise implicit — what introspection found, minus
@@ -1028,7 +1028,7 @@ away. Output is byte-stable for a given schema.
 
 Unlike runtime introspection, this needs no flag: it is a build-time artifact,
 not something a request can ask for. In code it is
-`vision_graphql::sdl::render(schema.type_system())`.
+`viate_graphql::sdl::render(schema.type_system())`.
 
 ## Aggregates
 
@@ -1141,7 +1141,7 @@ endpoint can answer "too large" differently from "invalid syntax".
 
 ```rust
 # use std::sync::Arc;
-# use vision_graphql::{Engine, ParseCache, ParseLimits, Schema};
+# use viate_graphql::{Engine, ParseCache, ParseLimits, Schema};
 # fn example(pool: sqlx::PgPool, schema: Schema) {
 let cache = ParseCache::with_limits(256, ParseLimits { max_depth: 32, max_bytes: 32 * 1024 });
 let engine = Engine::with_parse_cache(pool, schema, Arc::new(cache));
@@ -1165,7 +1165,7 @@ four words that reads a whole table, builds the entire result as one JSON value
 in Postgres, and hands it over in one piece.
 
 ```rust
-# use vision_graphql::{Engine, Schema, limits::ExecutionLimits};
+# use viate_graphql::{Engine, Schema, limits::ExecutionLimits};
 # fn example(pool: sqlx::PgPool, schema: Schema) {
 let engine = Engine::new(pool, schema).with_limits(
     ExecutionLimits::new()
@@ -1249,8 +1249,8 @@ The posture to prefer where clients can ship their documents: compile a set at
 startup, run them by key, never parse a new document at request time.
 
 ```rust
-# use vision_graphql::{Engine, QueryRegistry};
-# async fn f(engine: Engine) -> vision_graphql::error::Result<()> {
+# use viate_graphql::{Engine, QueryRegistry};
+# async fn f(engine: Engine) -> viate_graphql::error::Result<()> {
 // once, at startup — a failure names the key that failed
 let registry = QueryRegistry::compile_all(&engine, [
     ("user-list",  "query($n: Int!) { users(limit: $n) { id name } }"),
@@ -1286,7 +1286,7 @@ would be worse to program against. `to_graphql_response` produces the wire form
 when you need it:
 
 ```rust
-# use vision_graphql::{Engine, Error};
+# use viate_graphql::{Engine, Error};
 # async fn f(engine: Engine, source: &str) -> serde_json::Value {
 match engine.query(source, None).await {
     Ok(data) => serde_json::json!({ "data": data }),
@@ -1346,9 +1346,9 @@ PostgreSQL transaction. The closure returning `Ok(v)` commits; returning `Err`
 rolls back. Use it when a second mutation needs an id returned by a first:
 
 ```rust
-# async fn example(engine: vision_graphql::Engine) -> Result<(), vision_graphql::Error> {
+# async fn example(engine: viate_graphql::Engine) -> Result<(), viate_graphql::Error> {
 use serde_json::{json, Value};
-use vision_graphql::Error;
+use viate_graphql::Error;
 
 let post: Value = engine.transaction(async |tx| {
     let u = tx.query(
@@ -1397,8 +1397,8 @@ the connection is yours. Its lifetime, its timeout and its commit are yours
 too; the engine begins and ends nothing here.
 
 ```rust
-# async fn example(engine: vision_graphql::Engine, pool: sqlx::PgPool,
-#     compiled: vision_graphql::CompiledQuery, principal: vision_graphql::predicate::Principal)
+# async fn example(engine: viate_graphql::Engine, pool: sqlx::PgPool,
+#     compiled: viate_graphql::CompiledQuery, principal: viate_graphql::predicate::Principal)
 #     -> Result<(), Box<dyn std::error::Error>> {
 let mut tx = pool.begin().await?;
 sqlx::query("UPDATE users SET password_hash = $1 WHERE id = $2")

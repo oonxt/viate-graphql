@@ -1,4 +1,4 @@
-# Vision-GraphQL Phase 5 — Schema Introspection + TOML Config Implementation Plan
+# Viate-GraphQL Phase 5 — Schema Introspection + TOML Config Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -30,7 +30,7 @@ tests/integration_introspect.rs   # end-to-end introspection
 tests/fixtures/schema.toml        # sample config used by tests
 ```
 
-Promoting `schema.rs` to a directory is a one-time reorganization. The public import path stays `vision_graphql::schema::*`.
+Promoting `schema.rs` to a directory is a one-time reorganization. The public import path stays `viate_graphql::schema::*`.
 
 ---
 
@@ -258,7 +258,7 @@ pub async fn introspect(pool: &Pool) -> Result<IntrospectedDb> {
         let is_nullable: String = row.get(4);
         let Some(pg_type) = data_type_to_pg_type(&dtype) else {
             tracing::warn!(
-                target: "vision_graphql::introspect",
+                target: "viate_graphql::introspect",
                 table = %tname,
                 column = %cname,
                 data_type = %dtype,
@@ -502,7 +502,7 @@ pub fn derive_relations_from_fks(
             let count = *pair_counts.get(&key).unwrap_or(&0);
             if count != 1 {
                 tracing::warn!(
-                    target: "vision_graphql::merge",
+                    target: "viate_graphql::merge",
                     from = %t.name,
                     to = %fk.to_table,
                     fks = count,
@@ -1186,8 +1186,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::Schema;
-use vision_graphql::Engine;
+use viate_graphql::schema::Schema;
+use viate_graphql::Engine;
 
 async fn setup_pool() -> (
     deadpool_postgres::Pool,

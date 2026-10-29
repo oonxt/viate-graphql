@@ -614,7 +614,7 @@ impl Schema {
     ///
     /// ```no_run
     /// # async fn example(pool: sqlx::PgPool) -> Result<(), Box<dyn std::error::Error>> {
-    /// use vision_graphql::Schema;
+    /// use viate_graphql::Schema;
     /// let schema = Schema::introspect_schemas(&pool, &["app", "audit"])
     ///     .await?
     ///     .build();
@@ -713,7 +713,7 @@ impl SchemaBuilder {
     }
 
     // Deliberately silent: logging warnings here put every one on stderr twice
-    // in `vision-gql diff` (once tracing-formatted, once in the report) and
+    // in `viate-gql diff` (once tracing-formatted, once in the report) and
     // sidestepped the CLI's table filters. Serving deployments hear them at
     // `Engine` construction instead; tooling calls [`Schema::warnings`].
     pub fn build(self) -> Schema {

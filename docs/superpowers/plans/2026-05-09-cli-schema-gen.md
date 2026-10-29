@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a `vision-graphql-cli` crate (binary `vision-gql`) with three subcommands — `generate`, `diff`, `validate` — to bootstrap and check `schema.toml` overlays.
+**Goal:** Add a `viate-graphql-cli` crate (binary `viate-gql`) with three subcommands — `generate`, `diff`, `validate` — to bootstrap and check `schema.toml` overlays.
 
-**Architecture:** New workspace member at `crates/vision-graphql-cli/` that depends on the existing library via path. Five pure helpers (`render`, `analyze`, `report`, `filter`, plus URL redaction in `render`) drive three thin async orchestrators. All non-DB logic is unit-testable; DB behavior is covered by testcontainers integration tests using the same pattern as the lib.
+**Architecture:** New workspace member at `crates/viate-graphql-cli/` that depends on the existing library via path. Five pure helpers (`render`, `analyze`, `report`, `filter`, plus URL redaction in `render`) drive three thin async orchestrators. All non-DB logic is unit-testable; DB behavior is covered by testcontainers integration tests using the same pattern as the lib.
 
 **Tech Stack:** Rust 2021, clap (derive), deadpool-postgres + tokio-postgres NoTls, globset, tracing-subscriber, time (formatting), serde_json, insta (snapshots), testcontainers.
 
@@ -15,18 +15,18 @@ Spec reference: `docs/superpowers/specs/2026-05-09-cli-schema-gen-design.md`.
 ## File map
 
 **Created:**
-- `crates/vision-graphql-cli/Cargo.toml`
-- `crates/vision-graphql-cli/src/main.rs` — clap dispatch, exit-code mapping, tracing setup
-- `crates/vision-graphql-cli/src/cmd_generate.rs` — generate orchestrator
-- `crates/vision-graphql-cli/src/cmd_diff.rs` — diff orchestrator
-- `crates/vision-graphql-cli/src/cmd_validate.rs` — validate orchestrator
-- `crates/vision-graphql-cli/src/render.rs` — `HeaderMeta`, `redact_url`, `toml_template`
-- `crates/vision-graphql-cli/src/analyze.rs` — `DiffReport`, `find_drift`
-- `crates/vision-graphql-cli/src/filter.rs` — `TableFilter`
-- `crates/vision-graphql-cli/src/report.rs` — text/json writers for `DiffReport`
-- `crates/vision-graphql-cli/src/log_init.rs` — verbosity → tracing level
-- `crates/vision-graphql-cli/tests/cli_e2e.rs` — testcontainers-backed E2E tests
-- `crates/vision-graphql-cli/tests/fixtures/clean.toml`, `fixtures/stale_hide.toml`, `fixtures/dup_expose.toml` — test data
+- `crates/viate-graphql-cli/Cargo.toml`
+- `crates/viate-graphql-cli/src/main.rs` — clap dispatch, exit-code mapping, tracing setup
+- `crates/viate-graphql-cli/src/cmd_generate.rs` — generate orchestrator
+- `crates/viate-graphql-cli/src/cmd_diff.rs` — diff orchestrator
+- `crates/viate-graphql-cli/src/cmd_validate.rs` — validate orchestrator
+- `crates/viate-graphql-cli/src/render.rs` — `HeaderMeta`, `redact_url`, `toml_template`
+- `crates/viate-graphql-cli/src/analyze.rs` — `DiffReport`, `find_drift`
+- `crates/viate-graphql-cli/src/filter.rs` — `TableFilter`
+- `crates/viate-graphql-cli/src/report.rs` — text/json writers for `DiffReport`
+- `crates/viate-graphql-cli/src/log_init.rs` — verbosity → tracing level
+- `crates/viate-graphql-cli/tests/cli_e2e.rs` — testcontainers-backed E2E tests
+- `crates/viate-graphql-cli/tests/fixtures/clean.toml`, `fixtures/stale_hide.toml`, `fixtures/dup_expose.toml` — test data
 
 **Modified:**
 - `Cargo.toml` (root) — add `[workspace]`, extend `exclude` with `crates/**`
@@ -38,8 +38,8 @@ Spec reference: `docs/superpowers/specs/2026-05-09-cli-schema-gen-design.md`.
 
 **Files:**
 - Modify: `Cargo.toml` (root)
-- Create: `crates/vision-graphql-cli/Cargo.toml`
-- Create: `crates/vision-graphql-cli/src/main.rs`
+- Create: `crates/viate-graphql-cli/Cargo.toml`
+- Create: `crates/viate-graphql-cli/src/main.rs`
 
 - [ ] **Step 1: Add workspace section and extend exclude in root `Cargo.toml`**
 
@@ -49,10 +49,10 @@ Final shape (only the changed/added bits shown):
 
 ```toml
 [workspace]
-members = [".", "crates/vision-graphql-cli"]
+members = [".", "crates/viate-graphql-cli"]
 
 [package]
-name = "vision-graphql"
+name = "viate-graphql"
 # ...unchanged...
 
 exclude = [
@@ -67,24 +67,24 @@ exclude = [
 
 - [ ] **Step 2: Create the CLI crate manifest**
 
-Create `crates/vision-graphql-cli/Cargo.toml`:
+Create `crates/viate-graphql-cli/Cargo.toml`:
 
 ```toml
 [package]
-name = "vision-graphql-cli"
+name = "viate-graphql-cli"
 version = "0.2.0"
 edition = "2021"
 rust-version = "1.85"
-description = "CLI to generate and validate vision-graphql schema overlays."
+description = "CLI to generate and validate viate-graphql schema overlays."
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/oonxt/vision-graphql"
+repository = "https://github.com/oonxt/viate-graphql"
 
 [[bin]]
-name = "vision-gql"
+name = "viate-gql"
 path = "src/main.rs"
 
 [dependencies]
-vision-graphql      = { path = "../..", version = "0.2" }
+viate-graphql      = { path = "../..", version = "0.2" }
 clap                = { version = "4", features = ["derive"] }
 deadpool-postgres   = "0.14"
 tokio-postgres      = "0.7"
@@ -106,13 +106,13 @@ testcontainers-modules = { version = "0.11", features = ["postgres"] }
 
 - [ ] **Step 3: Create a minimal `main.rs` skeleton that compiles**
 
-Create `crates/vision-graphql-cli/src/main.rs`:
+Create `crates/viate-graphql-cli/src/main.rs`:
 
 ```rust
 use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
-#[command(name = "vision-gql", version, about = "vision-graphql schema overlay tool")]
+#[command(name = "viate-gql", version, about = "viate-graphql schema overlay tool")]
 struct Cli {
     #[command(subcommand)]
     cmd: Cmd,
@@ -138,28 +138,28 @@ fn main() {
 - [ ] **Step 4: Verify the workspace builds**
 
 Run: `cargo build --workspace`
-Expected: both `vision-graphql` and `vision-graphql-cli` compile, no errors.
+Expected: both `viate-graphql` and `viate-graphql-cli` compile, no errors.
 
 - [ ] **Step 5: Verify `--help` works**
 
-Run: `cargo run -p vision-graphql-cli -- --help`
+Run: `cargo run -p viate-graphql-cli -- --help`
 Expected: clap prints the three subcommands.
 
 - [ ] **Step 6: Verify lib package excludes the CLI**
 
-Run: `cargo package --list -p vision-graphql 2>&1 | grep -c '^crates/' || echo 0`
+Run: `cargo package --list -p viate-graphql 2>&1 | grep -c '^crates/' || echo 0`
 Expected output: `0`
 
 - [ ] **Step 7: Verify existing lib tests still pass**
 
-Run: `cargo test -p vision-graphql --lib`
+Run: `cargo test -p viate-graphql --lib`
 Expected: all tests pass (no regression).
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add Cargo.toml crates/vision-graphql-cli
-git commit -m "feat(cli): scaffold vision-graphql-cli workspace member"
+git add Cargo.toml crates/viate-graphql-cli
+git commit -m "feat(cli): scaffold viate-graphql-cli workspace member"
 ```
 
 ---
@@ -167,12 +167,12 @@ git commit -m "feat(cli): scaffold vision-graphql-cli workspace member"
 ## Task 2: `TableFilter` (pure helper, TDD)
 
 **Files:**
-- Create: `crates/vision-graphql-cli/src/filter.rs`
-- Modify: `crates/vision-graphql-cli/src/main.rs` (add `mod filter;`)
+- Create: `crates/viate-graphql-cli/src/filter.rs`
+- Modify: `crates/viate-graphql-cli/src/main.rs` (add `mod filter;`)
 
 - [ ] **Step 1: Add the module declaration to `main.rs`**
 
-In `crates/vision-graphql-cli/src/main.rs`, add at the top (before `use clap...`):
+In `crates/viate-graphql-cli/src/main.rs`, add at the top (before `use clap...`):
 
 ```rust
 mod filter;
@@ -180,7 +180,7 @@ mod filter;
 
 - [ ] **Step 2: Write the failing tests**
 
-Create `crates/vision-graphql-cli/src/filter.rs`:
+Create `crates/viate-graphql-cli/src/filter.rs`:
 
 ```rust
 //! Glob-based include/ignore filter for table names.
@@ -278,13 +278,13 @@ mod tests {
 
 - [ ] **Step 3: Run tests and verify they pass**
 
-Run: `cargo test -p vision-graphql-cli filter`
+Run: `cargo test -p viate-graphql-cli filter`
 Expected: 5 tests pass.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/src/filter.rs crates/vision-graphql-cli/src/main.rs
+git add crates/viate-graphql-cli/src/filter.rs crates/viate-graphql-cli/src/main.rs
 git commit -m "feat(cli): TableFilter with include/ignore globs"
 ```
 
@@ -293,16 +293,16 @@ git commit -m "feat(cli): TableFilter with include/ignore globs"
 ## Task 3: URL redaction + `HeaderMeta`
 
 **Files:**
-- Create: `crates/vision-graphql-cli/src/render.rs`
-- Modify: `crates/vision-graphql-cli/src/main.rs` (add `mod render;`)
+- Create: `crates/viate-graphql-cli/src/render.rs`
+- Modify: `crates/viate-graphql-cli/src/main.rs` (add `mod render;`)
 
 - [ ] **Step 1: Add module declaration to `main.rs`**
 
-Update `crates/vision-graphql-cli/src/main.rs` to add `mod render;` next to `mod filter;`.
+Update `crates/viate-graphql-cli/src/main.rs` to add `mod render;` next to `mod filter;`.
 
 - [ ] **Step 2: Write the failing tests**
 
-Create `crates/vision-graphql-cli/src/render.rs`:
+Create `crates/viate-graphql-cli/src/render.rs`:
 
 ```rust
 //! TOML template rendering and helpers (URL redaction, header metadata).
@@ -382,13 +382,13 @@ mod tests {
 
 - [ ] **Step 3: Run tests and verify they pass**
 
-Run: `cargo test -p vision-graphql-cli render::`
+Run: `cargo test -p viate-graphql-cli render::`
 Expected: 5 tests pass.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/src/render.rs crates/vision-graphql-cli/src/main.rs
+git add crates/viate-graphql-cli/src/render.rs crates/viate-graphql-cli/src/main.rs
 git commit -m "feat(cli): URL redaction and HeaderMeta scaffolding"
 ```
 
@@ -397,20 +397,20 @@ git commit -m "feat(cli): URL redaction and HeaderMeta scaffolding"
 ## Task 4: `render::toml_template` for the empty / single-table cases
 
 **Files:**
-- Modify: `crates/vision-graphql-cli/src/render.rs`
+- Modify: `crates/viate-graphql-cli/src/render.rs`
 
 - [ ] **Step 1: Write the failing tests (snapshots)**
 
-Append to `crates/vision-graphql-cli/src/render.rs`:
+Append to `crates/viate-graphql-cli/src/render.rs`:
 
 ```rust
 use crate::filter::TableFilter;
-use vision_graphql::schema::introspect::{
+use viate_graphql::schema::introspect::{
     IntrospectedColumn, IntrospectedDb, IntrospectedForeignKey, IntrospectedTable,
 };
-use vision_graphql::schema::PgType;
+use viate_graphql::schema::PgType;
 
-const HEADER_PREFIX: &str = "# Generated by vision-gql";
+const HEADER_PREFIX: &str = "# Generated by viate-gql";
 
 /// Render a commented starter schema.toml from an introspected database.
 ///
@@ -441,7 +441,7 @@ pub fn toml_template(db: &IntrospectedDb, filter: &TableFilter, meta: &HeaderMet
 
 fn write_header(out: &mut String, meta: &HeaderMeta) {
     out.push_str(&format!(
-        "# Generated by vision-gql {} on {}\n",
+        "# Generated by viate-gql {} on {}\n",
         meta.tool_version, meta.timestamp_iso8601
     ));
     out.push_str(&format!("# Source: {}\n", meta.redacted_source_url));
@@ -592,13 +592,13 @@ Note: the dummy `""` placeholder in the FK formatting (`fk.to_table, "", fk.to_c
 
 - [ ] **Step 2: Run tests and verify they pass**
 
-Run: `cargo test -p vision-graphql-cli render`
+Run: `cargo test -p viate-graphql-cli render`
 Expected: all tests in `render_tests` pass plus the 5 from Task 3.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/src/render.rs
+git add crates/viate-graphql-cli/src/render.rs
 git commit -m "feat(cli): toml_template renders header and basic table stanzas"
 ```
 
@@ -607,7 +607,7 @@ git commit -m "feat(cli): toml_template renders header and basic table stanzas"
 ## Task 5: `render::toml_template` with FK-derived relation stanzas
 
 **Files:**
-- Modify: `crates/vision-graphql-cli/src/render.rs`
+- Modify: `crates/viate-graphql-cli/src/render.rs`
 
 - [ ] **Step 1: Write the failing test for the relation stanza**
 
@@ -669,7 +669,7 @@ fn fk_emits_relation_stanzas_on_both_sides() {
 
 - [ ] **Step 2: Run test, verify it fails (no relation output yet)**
 
-Run: `cargo test -p vision-graphql-cli render::render_tests::fk_emits_relation_stanzas_on_both_sides`
+Run: `cargo test -p viate-graphql-cli render::render_tests::fk_emits_relation_stanzas_on_both_sides`
 Expected: FAIL (assertions on `[[tables.posts.relations]]` and `kind = "object"` find nothing).
 
 - [ ] **Step 3: Implement relation rendering**
@@ -720,12 +720,12 @@ fn write_table_stanza(out: &mut String, t: &IntrospectedTable, db: &Introspected
     out.push_str(&format!("# expose_as = \"{}\"\n", t.name));
     out.push_str("# hide_columns = []\n");
 
-    let derived = vision_graphql::schema::merge::derive_relations_from_fks(db);
+    let derived = viate_graphql::schema::merge::derive_relations_from_fks(db);
     let mine: Vec<_> = derived.iter().filter(|(src, _, _)| src == &t.name).collect();
     for (_, rel_name, rel) in mine {
         let kind = match rel.kind {
-            vision_graphql::schema::RelKind::Object => "object",
-            vision_graphql::schema::RelKind::Array => "array",
+            viate_graphql::schema::RelKind::Object => "object",
+            viate_graphql::schema::RelKind::Array => "array",
         };
         out.push_str("#\n");
         out.push_str(&format!(
@@ -752,21 +752,21 @@ fn write_table_stanza(out: &mut String, t: &IntrospectedTable, db: &Introspected
 
 - [ ] **Step 4: Verify `derive_relations_from_fks` is reachable from the CLI crate**
 
-Run: `cargo build -p vision-graphql-cli`
+Run: `cargo build -p viate-graphql-cli`
 
 Expected outcome A: builds cleanly. Skip to Step 5.
 
-Expected outcome B: error `function 'derive_relations_from_fks' is private` or `module 'merge' is private`. In that case, modify `vision-graphql/src/schema/mod.rs` line `pub mod merge;` (it should already be `pub`; check). If `merge` is `pub mod`, then `pub fn derive_relations_from_fks` should be reachable. If not, in `vision-graphql/src/schema/merge.rs` change `pub fn derive_relations_from_fks` (it is already `pub`). Then re-run `cargo build -p vision-graphql-cli`.
+Expected outcome B: error `function 'derive_relations_from_fks' is private` or `module 'merge' is private`. In that case, modify `viate-graphql/src/schema/mod.rs` line `pub mod merge;` (it should already be `pub`; check). If `merge` is `pub mod`, then `pub fn derive_relations_from_fks` should be reachable. If not, in `viate-graphql/src/schema/merge.rs` change `pub fn derive_relations_from_fks` (it is already `pub`). Then re-run `cargo build -p viate-graphql-cli`.
 
 - [ ] **Step 5: Run the test, verify it passes**
 
-Run: `cargo test -p vision-graphql-cli render`
+Run: `cargo test -p viate-graphql-cli render`
 Expected: all render tests pass (including the new FK case).
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/src/render.rs
+git add crates/viate-graphql-cli/src/render.rs
 git commit -m "feat(cli): emit FK-derived relation stanzas in template"
 ```
 
@@ -775,8 +775,8 @@ git commit -m "feat(cli): emit FK-derived relation stanzas in template"
 ## Task 6: `analyze::find_drift` and `DiffReport`
 
 **Files:**
-- Create: `crates/vision-graphql-cli/src/analyze.rs`
-- Modify: `crates/vision-graphql-cli/src/main.rs` (add `mod analyze;`)
+- Create: `crates/viate-graphql-cli/src/analyze.rs`
+- Modify: `crates/viate-graphql-cli/src/main.rs` (add `mod analyze;`)
 
 - [ ] **Step 1: Add module declaration to `main.rs`**
 
@@ -784,7 +784,7 @@ In `main.rs`, alongside other `mod ...;` lines, add `mod analyze;`.
 
 - [ ] **Step 2: Write failing tests + implementation skeleton**
 
-Create `crates/vision-graphql-cli/src/analyze.rs`:
+Create `crates/viate-graphql-cli/src/analyze.rs`:
 
 ```rust
 //! Validate a parsed ConfigOverlay against an introspected database.
@@ -792,8 +792,8 @@ Create `crates/vision-graphql-cli/src/analyze.rs`:
 use crate::filter::TableFilter;
 use serde::Serialize;
 use std::collections::BTreeMap;
-use vision_graphql::schema::config::ConfigOverlay;
-use vision_graphql::schema::introspect::{IntrospectedDb, IntrospectedTable};
+use viate_graphql::schema::config::ConfigOverlay;
+use viate_graphql::schema::introspect::{IntrospectedDb, IntrospectedTable};
 
 #[derive(Debug, Serialize, Default)]
 pub struct DiffReport {
@@ -957,11 +957,11 @@ pub fn find_drift(cfg: &ConfigOverlay, db: &IntrospectedDb, filter: &TableFilter
 #[cfg(test)]
 mod tests {
     use super::*;
-    use vision_graphql::schema::config::{
+    use viate_graphql::schema::config::{
         RelationKindOverlay, RelationOverlay, TableOverlay,
     };
-    use vision_graphql::schema::introspect::{IntrospectedColumn, IntrospectedTable};
-    use vision_graphql::schema::PgType;
+    use viate_graphql::schema::introspect::{IntrospectedColumn, IntrospectedTable};
+    use viate_graphql::schema::PgType;
 
     fn db_users_only() -> IntrospectedDb {
         let mut db = IntrospectedDb::default();
@@ -1100,13 +1100,13 @@ mod tests {
 
 - [ ] **Step 3: Run tests and verify they pass**
 
-Run: `cargo test -p vision-graphql-cli analyze`
+Run: `cargo test -p viate-graphql-cli analyze`
 Expected: 6 tests pass.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/src/analyze.rs crates/vision-graphql-cli/src/main.rs
+git add crates/viate-graphql-cli/src/analyze.rs crates/viate-graphql-cli/src/main.rs
 git commit -m "feat(cli): analyze::find_drift overlay-vs-DB checks"
 ```
 
@@ -1115,8 +1115,8 @@ git commit -m "feat(cli): analyze::find_drift overlay-vs-DB checks"
 ## Task 7: `report` text and JSON writers
 
 **Files:**
-- Create: `crates/vision-graphql-cli/src/report.rs`
-- Modify: `crates/vision-graphql-cli/src/main.rs` (add `mod report;`)
+- Create: `crates/viate-graphql-cli/src/report.rs`
+- Modify: `crates/viate-graphql-cli/src/main.rs` (add `mod report;`)
 
 - [ ] **Step 1: Add module declaration to `main.rs`**
 
@@ -1124,7 +1124,7 @@ Add `mod report;` to the module list in `main.rs`.
 
 - [ ] **Step 2: Write failing tests + implementation**
 
-Create `crates/vision-graphql-cli/src/report.rs`:
+Create `crates/viate-graphql-cli/src/report.rs`:
 
 ```rust
 //! Format a DiffReport for human or machine consumption.
@@ -1253,13 +1253,13 @@ mod tests {
 
 - [ ] **Step 3: Run tests and verify they pass**
 
-Run: `cargo test -p vision-graphql-cli report`
+Run: `cargo test -p viate-graphql-cli report`
 Expected: 3 tests pass.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/src/report.rs crates/vision-graphql-cli/src/main.rs
+git add crates/viate-graphql-cli/src/report.rs crates/viate-graphql-cli/src/main.rs
 git commit -m "feat(cli): text and JSON DiffReport writers"
 ```
 
@@ -1268,8 +1268,8 @@ git commit -m "feat(cli): text and JSON DiffReport writers"
 ## Task 8: Verbosity → tracing level helper
 
 **Files:**
-- Create: `crates/vision-graphql-cli/src/log_init.rs`
-- Modify: `crates/vision-graphql-cli/src/main.rs` (add `mod log_init;`)
+- Create: `crates/viate-graphql-cli/src/log_init.rs`
+- Modify: `crates/viate-graphql-cli/src/main.rs` (add `mod log_init;`)
 
 - [ ] **Step 1: Add module declaration to `main.rs`**
 
@@ -1277,7 +1277,7 @@ Add `mod log_init;` to the module list.
 
 - [ ] **Step 2: Write tests + implementation**
 
-Create `crates/vision-graphql-cli/src/log_init.rs`:
+Create `crates/viate-graphql-cli/src/log_init.rs`:
 
 ```rust
 //! Configure tracing-subscriber from -v/-q flags.
@@ -1335,13 +1335,13 @@ mod tests {
 
 - [ ] **Step 3: Run tests and verify they pass**
 
-Run: `cargo test -p vision-graphql-cli log_init`
+Run: `cargo test -p viate-graphql-cli log_init`
 Expected: 4 tests pass.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/src/log_init.rs crates/vision-graphql-cli/src/main.rs
+git add crates/viate-graphql-cli/src/log_init.rs crates/viate-graphql-cli/src/main.rs
 git commit -m "feat(cli): -v/-q to tracing level mapping"
 ```
 
@@ -1350,8 +1350,8 @@ git commit -m "feat(cli): -v/-q to tracing level mapping"
 ## Task 9: `cmd_validate` orchestrator (offline only)
 
 **Files:**
-- Create: `crates/vision-graphql-cli/src/cmd_validate.rs`
-- Modify: `crates/vision-graphql-cli/src/main.rs`
+- Create: `crates/viate-graphql-cli/src/cmd_validate.rs`
+- Modify: `crates/viate-graphql-cli/src/main.rs`
 
 - [ ] **Step 1: Add module declaration**
 
@@ -1359,7 +1359,7 @@ Add `mod cmd_validate;` to `main.rs`.
 
 - [ ] **Step 2: Write tests + implementation**
 
-Create `crates/vision-graphql-cli/src/cmd_validate.rs`:
+Create `crates/viate-graphql-cli/src/cmd_validate.rs`:
 
 ```rust
 //! Offline structural validation of a schema.toml.
@@ -1367,7 +1367,7 @@ Create `crates/vision-graphql-cli/src/cmd_validate.rs`:
 use anyhow::{bail, Context, Result};
 use std::collections::BTreeMap;
 use std::path::Path;
-use vision_graphql::schema::config::parse;
+use viate_graphql::schema::config::parse;
 
 pub fn run(path: &Path) -> Result<()> {
     let text = std::fs::read_to_string(path)
@@ -1511,7 +1511,7 @@ mod tests {
                 .duration_since(std::time::UNIX_EPOCH)
                 .map(|d| d.as_nanos())
                 .unwrap_or(0);
-            p.push(format!("vision-gql-test-{nanos}-{}.toml", std::process::id()));
+            p.push(format!("viate-gql-test-{nanos}-{}.toml", std::process::id()));
             let mut f = std::fs::File::create(&p).expect("temp file");
             f.write_all(contents.as_bytes()).expect("write");
             PathHolder { path: p }
@@ -1522,13 +1522,13 @@ mod tests {
 
 - [ ] **Step 3: Run tests and verify they pass**
 
-Run: `cargo test -p vision-graphql-cli cmd_validate`
+Run: `cargo test -p viate-graphql-cli cmd_validate`
 Expected: 4 tests pass.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/src/cmd_validate.rs crates/vision-graphql-cli/src/main.rs
+git add crates/viate-graphql-cli/src/cmd_validate.rs crates/viate-graphql-cli/src/main.rs
 git commit -m "feat(cli): cmd_validate offline TOML structure check"
 ```
 
@@ -1537,8 +1537,8 @@ git commit -m "feat(cli): cmd_validate offline TOML structure check"
 ## Task 10: `cmd_generate` orchestrator + clap wiring
 
 **Files:**
-- Create: `crates/vision-graphql-cli/src/cmd_generate.rs`
-- Modify: `crates/vision-graphql-cli/src/main.rs`
+- Create: `crates/viate-graphql-cli/src/cmd_generate.rs`
+- Modify: `crates/viate-graphql-cli/src/main.rs`
 
 - [ ] **Step 1: Add module declaration**
 
@@ -1546,7 +1546,7 @@ Add `mod cmd_generate;` to `main.rs`.
 
 - [ ] **Step 2: Implement `cmd_generate::run`**
 
-Create `crates/vision-graphql-cli/src/cmd_generate.rs`:
+Create `crates/viate-graphql-cli/src/cmd_generate.rs`:
 
 ```rust
 //! Generate a starter schema.toml from a live database.
@@ -1557,7 +1557,7 @@ use std::path::{Path, PathBuf};
 use time::format_description::well_known::Rfc3339;
 use time::OffsetDateTime;
 use tokio_postgres::NoTls;
-use vision_graphql::schema::introspect::introspect;
+use viate_graphql::schema::introspect::introspect;
 
 use crate::filter::TableFilter;
 use crate::render::{redact_url, toml_template, HeaderMeta};
@@ -1649,7 +1649,7 @@ Note: the `_path_unused` shim keeps `Path` referenced; remove when adding more c
 
 - [ ] **Step 3: Wire up clap subcommands and dispatch in `main.rs`**
 
-Replace `crates/vision-graphql-cli/src/main.rs` entirely with:
+Replace `crates/viate-graphql-cli/src/main.rs` entirely with:
 
 ```rust
 mod analyze;
@@ -1666,9 +1666,9 @@ use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "vision-gql",
+    name = "viate-gql",
     version,
-    about = "vision-graphql schema overlay tool"
+    about = "viate-graphql schema overlay tool"
 )]
 struct Cli {
     #[command(subcommand)]
@@ -1800,12 +1800,12 @@ impl std::error::Error for DriftDetected {}
 
 - [ ] **Step 4: Verify the workspace still compiles**
 
-Run: `cargo build -p vision-graphql-cli`
+Run: `cargo build -p viate-graphql-cli`
 Expected: clean build.
 
 - [ ] **Step 5: Add E2E test for `generate`**
 
-Create `crates/vision-graphql-cli/tests/cli_e2e.rs`:
+Create `crates/viate-graphql-cli/tests/cli_e2e.rs`:
 
 ```rust
 use std::process::Command;
@@ -1856,7 +1856,7 @@ async fn boot_pg() -> (
 #[tokio::test(flavor = "multi_thread")]
 async fn generate_to_stdout_includes_all_tables() {
     let (url, _c) = boot_pg().await;
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["generate", "--url", &url])
         .output()
@@ -1871,7 +1871,7 @@ async fn generate_to_stdout_includes_all_tables() {
 #[tokio::test(flavor = "multi_thread")]
 async fn generate_ignore_tables_filters() {
     let (url, _c) = boot_pg().await;
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["generate", "--url", &url, "--ignore-tables", "audit_*"])
         .output()
@@ -1885,8 +1885,8 @@ async fn generate_ignore_tables_filters() {
 #[tokio::test(flavor = "multi_thread")]
 async fn generate_force_required_to_overwrite() {
     let (url, _c) = boot_pg().await;
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
-    let dir = std::env::temp_dir().join(format!("vision-gql-e2e-{}", std::process::id()));
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
+    let dir = std::env::temp_dir().join(format!("viate-gql-e2e-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("schema.toml");
 
@@ -1914,15 +1914,15 @@ async fn generate_force_required_to_overwrite() {
 
 - [ ] **Step 6: Run the E2E tests and verify they pass**
 
-Run: `cargo test -p vision-graphql-cli --test cli_e2e -- --nocapture`
+Run: `cargo test -p viate-graphql-cli --test cli_e2e -- --nocapture`
 Expected: 3 tests pass.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/src/cmd_generate.rs \
-        crates/vision-graphql-cli/src/main.rs \
-        crates/vision-graphql-cli/tests/cli_e2e.rs
+git add crates/viate-graphql-cli/src/cmd_generate.rs \
+        crates/viate-graphql-cli/src/main.rs \
+        crates/viate-graphql-cli/tests/cli_e2e.rs
 git commit -m "feat(cli): generate subcommand wired end-to-end"
 ```
 
@@ -1931,9 +1931,9 @@ git commit -m "feat(cli): generate subcommand wired end-to-end"
 ## Task 11: `cmd_diff` orchestrator + E2E
 
 **Files:**
-- Create: `crates/vision-graphql-cli/src/cmd_diff.rs`
-- Modify: `crates/vision-graphql-cli/src/main.rs`
-- Modify: `crates/vision-graphql-cli/tests/cli_e2e.rs`
+- Create: `crates/viate-graphql-cli/src/cmd_diff.rs`
+- Modify: `crates/viate-graphql-cli/src/main.rs`
+- Modify: `crates/viate-graphql-cli/tests/cli_e2e.rs`
 
 - [ ] **Step 1: Add module declaration**
 
@@ -1941,15 +1941,15 @@ Add `mod cmd_diff;` near the other module declarations in `main.rs`.
 
 - [ ] **Step 2: Implement `cmd_diff::run`**
 
-Create `crates/vision-graphql-cli/src/cmd_diff.rs`:
+Create `crates/viate-graphql-cli/src/cmd_diff.rs`:
 
 ```rust
 //! Compare a schema.toml against a live database for stale references.
 
 use anyhow::{Context, Result};
 use std::path::Path;
-use vision_graphql::schema::config::parse;
-use vision_graphql::schema::introspect::introspect;
+use viate_graphql::schema::config::parse;
+use viate_graphql::schema::introspect::introspect;
 
 use crate::analyze::find_drift;
 use crate::cmd_generate; // reuse build_pool
@@ -1996,7 +1996,7 @@ fn _unused(_: &Path) {}
 
 - [ ] **Step 3: Promote `build_pool` to public**
 
-In `crates/vision-graphql-cli/src/cmd_generate.rs`, rename the private `build_pool` to a public re-export so `cmd_diff` can call it. Replace the existing `fn build_pool` line with:
+In `crates/viate-graphql-cli/src/cmd_generate.rs`, rename the private `build_pool` to a public re-export so `cmd_diff` can call it. Replace the existing `fn build_pool` line with:
 
 ```rust
 pub fn build_pool_pub(url: &str) -> Result<deadpool_postgres::Pool> {
@@ -2028,16 +2028,16 @@ Cmd::Diff(a) => {
 
 - [ ] **Step 5: Verify the workspace compiles**
 
-Run: `cargo build -p vision-graphql-cli`
+Run: `cargo build -p viate-graphql-cli`
 Expected: clean.
 
 - [ ] **Step 6: Add E2E tests for diff**
 
-Append to `crates/vision-graphql-cli/tests/cli_e2e.rs`:
+Append to `crates/viate-graphql-cli/tests/cli_e2e.rs`:
 
 ```rust
 fn write_temp_toml(name: &str, contents: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("vision-gql-e2e-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("viate-gql-e2e-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let p = dir.join(name);
     std::fs::write(&p, contents).unwrap();
@@ -2055,7 +2055,7 @@ async fn diff_clean_overlay_exits_zero() {
         hide_columns = ["secret"]
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["diff", "--url", &url, "--config", p.to_str().unwrap()])
         .output()
@@ -2075,7 +2075,7 @@ async fn diff_stale_hide_column_exits_one() {
         hide_columns = ["password_hash"]
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["diff", "--url", &url, "--config", p.to_str().unwrap()])
         .output()
@@ -2096,7 +2096,7 @@ async fn diff_json_format_exits_one_with_machine_output() {
         hide_columns = ["password_hash"]
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args([
             "diff",
@@ -2125,7 +2125,7 @@ async fn diff_ignore_tables_filters_findings() {
         hide_columns = ["password_hash"]
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args([
             "diff",
@@ -2147,16 +2147,16 @@ Add `serde_json` to the CLI crate's `[dev-dependencies]` if it isn't already inh
 
 - [ ] **Step 7: Run the E2E tests and verify they pass**
 
-Run: `cargo test -p vision-graphql-cli --test cli_e2e -- --nocapture`
+Run: `cargo test -p viate-graphql-cli --test cli_e2e -- --nocapture`
 Expected: all 7 tests pass (3 from Task 10 + 4 here).
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/src/cmd_diff.rs \
-        crates/vision-graphql-cli/src/cmd_generate.rs \
-        crates/vision-graphql-cli/src/main.rs \
-        crates/vision-graphql-cli/tests/cli_e2e.rs
+git add crates/viate-graphql-cli/src/cmd_diff.rs \
+        crates/viate-graphql-cli/src/cmd_generate.rs \
+        crates/viate-graphql-cli/src/main.rs \
+        crates/viate-graphql-cli/tests/cli_e2e.rs
 git commit -m "feat(cli): diff subcommand wired end-to-end"
 ```
 
@@ -2165,11 +2165,11 @@ git commit -m "feat(cli): diff subcommand wired end-to-end"
 ## Task 12: `validate` E2E and missing-URL E2E
 
 **Files:**
-- Modify: `crates/vision-graphql-cli/tests/cli_e2e.rs`
+- Modify: `crates/viate-graphql-cli/tests/cli_e2e.rs`
 
 - [ ] **Step 1: Add E2E tests**
 
-Append to `crates/vision-graphql-cli/tests/cli_e2e.rs`:
+Append to `crates/viate-graphql-cli/tests/cli_e2e.rs`:
 
 ```rust
 #[test]
@@ -2181,7 +2181,7 @@ fn validate_clean_exits_zero() {
         expose_as = "profiles"
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["validate", p.to_str().unwrap()])
         .output()
@@ -2202,7 +2202,7 @@ fn validate_dup_expose_as_exits_two() {
         expose_as = "people"
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["validate", p.to_str().unwrap()])
         .output()
@@ -2213,7 +2213,7 @@ fn validate_dup_expose_as_exits_two() {
 
 #[test]
 fn missing_url_and_env_exits_two() {
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["generate"])
         .env_remove("DATABASE_URL")
@@ -2227,14 +2227,14 @@ fn missing_url_and_env_exits_two() {
 
 - [ ] **Step 2: Run the new tests**
 
-Run: `cargo test -p vision-graphql-cli --test cli_e2e validate_ -- --nocapture`
-Run: `cargo test -p vision-graphql-cli --test cli_e2e missing_url_ -- --nocapture`
+Run: `cargo test -p viate-graphql-cli --test cli_e2e validate_ -- --nocapture`
+Run: `cargo test -p viate-graphql-cli --test cli_e2e missing_url_ -- --nocapture`
 Expected: 3 tests pass.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add crates/vision-graphql-cli/tests/cli_e2e.rs
+git add crates/viate-graphql-cli/tests/cli_e2e.rs
 git commit -m "test(cli): validate subcommand and missing-URL E2E"
 ```
 
@@ -2252,14 +2252,14 @@ Insert a new section after the existing "Building the schema" section (right bef
 ```markdown
 ## CLI
 
-`vision-graphql-cli` ships a `vision-gql` binary that bootstraps and validates
+`viate-graphql-cli` ships a `viate-gql` binary that bootstraps and validates
 overlay files against a live database.
 
 ```bash
-cargo install vision-graphql-cli
-vision-gql generate --url postgres://localhost/myapp > schema.toml
-vision-gql diff     --url postgres://localhost/myapp --config schema.toml
-vision-gql validate schema.toml
+cargo install viate-graphql-cli
+viate-gql generate --url postgres://localhost/myapp > schema.toml
+viate-gql diff     --url postgres://localhost/myapp --config schema.toml
+viate-gql validate schema.toml
 ```
 
 `generate` produces a fully-commented starter file; uncomment any stanza to
@@ -2270,7 +2270,7 @@ performs offline structural checks without a connection.
 Filter what gets processed with comma-separated globs:
 
 ```bash
-vision-gql generate --url $DATABASE_URL --ignore-tables 'audit_*,_temp_*'
+viate-gql generate --url $DATABASE_URL --ignore-tables 'audit_*,_temp_*'
 ```
 
 Both subcommands accept `$DATABASE_URL` as the default for `--url`. NoTls only
@@ -2284,12 +2284,12 @@ in this release; only the `public` schema is introspected.
 In `README.md`, find the line `2. **TOML overlay** — \`.load_config("schema.toml")?\` applies renames, hidden columns, and manual relations.` and replace with:
 
 ```markdown
-2. **TOML overlay** — `.load_config("schema.toml")?` applies renames, hidden columns, and manual relations. Run `vision-gql generate` to bootstrap a starter file from a live DB.
+2. **TOML overlay** — `.load_config("schema.toml")?` applies renames, hidden columns, and manual relations. Run `viate-gql generate` to bootstrap a starter file from a live DB.
 ```
 
 - [ ] **Step 3: Run `cargo package` for the lib to verify nothing leaked**
 
-Run: `cargo package --list -p vision-graphql --allow-dirty | grep -E '^(crates/|docs/)' || echo CLEAN`
+Run: `cargo package --list -p viate-graphql --allow-dirty | grep -E '^(crates/|docs/)' || echo CLEAN`
 Expected output: `CLEAN`.
 
 - [ ] **Step 4: Run the full workspace test suite**
@@ -2301,7 +2301,7 @@ Expected: all tests pass; no regressions in the lib crate.
 
 ```bash
 git add README.md
-git commit -m "docs(readme): document vision-gql CLI"
+git commit -m "docs(readme): document viate-gql CLI"
 ```
 
 ---

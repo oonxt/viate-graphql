@@ -1,4 +1,4 @@
-# Vision-GraphQL Phase 1 — Core SELECT Implementation Plan
+# Viate-GraphQL Phase 1 — Core SELECT Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -15,7 +15,7 @@
 ## File Structure
 
 ```
-vision-graphql/
+viate-graphql/
   Cargo.toml
   .gitignore
   src/
@@ -53,7 +53,7 @@ vision-graphql/
 
 ```toml
 [package]
-name = "vision-graphql"
+name = "viate-graphql"
 version = "0.1.0"
 edition = "2021"
 description = "Hasura-style ORM for PostgreSQL in Rust"
@@ -93,7 +93,7 @@ Cargo.lock
 
 `src/error.rs`:
 ```rust
-//! Error types for vision-graphql.
+//! Error types for viate-graphql.
 ```
 
 `src/ast.rs`:
@@ -134,7 +134,7 @@ Cargo.lock
 - [ ] **Step 4: Write src/lib.rs**
 
 ```rust
-//! # vision-graphql
+//! # viate-graphql
 //!
 //! A Hasura-style ORM for PostgreSQL. Accepts GraphQL query strings and
 //! returns `serde_json::Value` in Hasura's data shape.
@@ -162,7 +162,7 @@ Expected: compiles cleanly (warnings about unused modules are acceptable).
 
 ```bash
 git add Cargo.toml .gitignore src/
-git commit -m "feat: scaffold vision-graphql crate structure"
+git commit -m "feat: scaffold viate-graphql crate structure"
 ```
 
 ---
@@ -203,7 +203,7 @@ Expected: compile error — `Error` not defined.
 
 Replace `src/error.rs` contents with:
 ```rust
-//! Error types for vision-graphql.
+//! Error types for viate-graphql.
 
 use thiserror::Error as ThisError;
 
@@ -2414,7 +2414,7 @@ impl Engine {
         let vars = variables.unwrap_or(Value::Object(Default::default()));
         let op = parse_and_lower(source, &vars, None, &self.schema)?;
         let (sql, binds) = render(&op, &self.schema)?;
-        tracing::debug!(target: "vision_graphql::engine", %sql, binds = binds.len(), "executing");
+        tracing::debug!(target: "viate_graphql::engine", %sql, binds = binds.len(), "executing");
         crate::executor::execute(&self.pool, &sql, &binds).await
     }
 }
@@ -2448,8 +2448,8 @@ use deadpool_postgres::{Config, ManagerConfig, RecyclingMethod, Runtime};
 use serde_json::{json, Value};
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{PgType, Schema, Table};
+use viate_graphql::Engine;
 
 fn users_schema() -> Schema {
     Schema::builder()

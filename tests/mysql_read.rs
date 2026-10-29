@@ -14,8 +14,8 @@ mod common;
 
 use common::mysql::{fresh_db, run_ddl, TestDb};
 use serde_json::{json, Value};
-use vision_graphql::ast::{BoolExpr, CmpOp};
-use vision_graphql::{Dialect, Engine, Error, Query, Schema, ScopeSet};
+use viate_graphql::ast::{BoolExpr, CmpOp};
+use viate_graphql::{Dialect, Engine, Error, Query, Schema, ScopeSet};
 
 #[path = "common/time_text.rs"]
 mod time_text;
@@ -121,7 +121,7 @@ fn titles_of(v: &Value, key: &str) -> Vec<String> {
 
 #[tokio::test]
 async fn introspection_reads_tables_types_keys_and_relations() {
-    use vision_graphql::schema::ColumnType;
+    use viate_graphql::schema::ColumnType;
     let db = db().await;
     let schema = Schema::introspect_mysql(&db.pool).await.unwrap().build();
     assert_eq!(schema.dialect(), Dialect::MySql);
@@ -146,7 +146,7 @@ async fn introspection_reads_tables_types_keys_and_relations() {
     assert!(ev.primary_key.is_empty());
     assert!(ev.find_column("tag").is_none());
     assert_eq!(ev.unique_constraints.keys().collect::<Vec<_>>(), ["ev_n"]);
-    assert!(!vision_graphql::sdl::render(schema.type_system()).contains("ev_by_pk"));
+    assert!(!viate_graphql::sdl::render(schema.type_system()).contains("ev_by_pk"));
     // BLOB and SET have no mapping and are left out — findably.
     assert!(users.find_column("picture").is_none());
     assert!(users.find_column("flags").is_none());
@@ -160,7 +160,7 @@ async fn introspection_reads_tables_types_keys_and_relations() {
     assert_eq!(rel.mapping, vec![("post_id".to_string(), "id".to_string())]);
     assert!(schema.table("active_users").unwrap().read_only);
 
-    let found = vision_graphql::schema::introspect_mysql::introspect(&db.pool)
+    let found = viate_graphql::schema::introspect_mysql::introspect(&db.pool)
         .await
         .unwrap();
     let skipped: Vec<(String, String)> = found
@@ -761,7 +761,7 @@ async fn what_is_published_is_what_is_implemented() {
     let (e, _db) = engine().await;
     let ts = e.schema().type_system();
     assert!(ts.mutation_root().is_some());
-    let sdl = vision_graphql::sdl::render(ts);
+    let sdl = viate_graphql::sdl::render(ts);
     assert!(sdl.contains("insert_users"), "{sdl}");
     assert!(sdl.contains("stddev"), "{sdl}");
     assert!(sdl.contains("_ilike"), "{sdl}");
@@ -841,7 +841,7 @@ async fn order_by_through_a_relation() {
 #[tokio::test]
 async fn a_persisted_unsupported_query_keeps_its_code() {
     let (e, _db) = engine().await;
-    let err = vision_graphql::QueryRegistry::compile_all(
+    let err = viate_graphql::QueryRegistry::compile_all(
         &e,
         [(
             "m",
@@ -851,7 +851,7 @@ async fn a_persisted_unsupported_query_keeps_its_code() {
     .err()
     .unwrap();
     assert!(matches!(err, Error::Unsupported { .. }), "{err}");
-    assert_eq!(err.code(), vision_graphql::ErrorCode::Unsupported);
+    assert_eq!(err.code(), viate_graphql::ErrorCode::Unsupported);
 }
 
 /// A list with `limit` / `offset` picks its page in a derived table before
@@ -915,7 +915,7 @@ async fn a_page_is_picked_before_the_projection() {
 #[tokio::test]
 async fn a_bind_inside_a_copied_order_term_binds_in_place() {
     let db = db().await;
-    let overlay = vision_graphql::schema::config::parse(
+    let overlay = viate_graphql::schema::config::parse(
         r#"
         [[tables.posts.relations]]
         name = "first_tag"

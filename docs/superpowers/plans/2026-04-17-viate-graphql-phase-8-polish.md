@@ -1,4 +1,4 @@
-# Vision-GraphQL Phase 8 — Tracing, Bench, Docs
+# Viate-GraphQL Phase 8 — Tracing, Bench, Docs
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans.
 
@@ -28,7 +28,7 @@ Concretely replace the two method signatures:
         let vars = variables.unwrap_or(Value::Object(Default::default()));
         let op = parse_and_lower(source, &vars, None, &self.schema)?;
         let (sql, binds) = render(&op, &self.schema)?;
-        tracing::debug!(target: "vision_graphql::engine", %sql, binds = binds.len(), "executing");
+        tracing::debug!(target: "viate_graphql::engine", %sql, binds = binds.len(), "executing");
         crate::executor::execute(&self.pool, &sql, &binds).await
     }
 
@@ -36,7 +36,7 @@ Concretely replace the two method signatures:
     pub async fn run(&self, op: impl crate::builder::IntoOperation) -> Result<Value> {
         let operation = op.into_operation();
         let (sql, binds) = render(&operation, &self.schema)?;
-        tracing::debug!(target: "vision_graphql::engine", %sql, binds = binds.len(), "executing");
+        tracing::debug!(target: "viate_graphql::engine", %sql, binds = binds.len(), "executing");
         crate::executor::execute(&self.pool, &sql, &binds).await
     }
 ```
@@ -96,11 +96,11 @@ Create `benches/sql_render.rs`:
 
 ```rust
 use criterion::{criterion_group, criterion_main, Criterion};
-use vision_graphql::ast::{
+use viate_graphql::ast::{
     BoolExpr, CmpOp, Field, Operation, QueryArgs, RootBody, RootField,
 };
-use vision_graphql::schema::{PgType, Relation, Schema, Table};
-use vision_graphql::sql::render;
+use viate_graphql::schema::{PgType, Relation, Schema, Table};
+use viate_graphql::sql::render;
 
 fn sample_schema() -> Schema {
     Schema::builder()
@@ -203,7 +203,7 @@ git commit -m "bench: criterion baseline for moderately complex query SQL render
 Replace the `//!` block at the top of `src/lib.rs` with:
 
 ```rust
-//! # vision-graphql
+//! # viate-graphql
 //!
 //! A Hasura-style ORM for PostgreSQL. Accepts GraphQL query strings or
 //! typed Rust builders and returns `serde_json::Value` in Hasura's data
@@ -214,7 +214,7 @@ Replace the `//!` block at the top of `src/lib.rs` with:
 //! ```no_run
 //! use deadpool_postgres::{Config, Runtime};
 //! use tokio_postgres::NoTls;
-//! use vision_graphql::{Engine, Query, Schema};
+//! use viate_graphql::{Engine, Query, Schema};
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! let mut cfg = Config::new();

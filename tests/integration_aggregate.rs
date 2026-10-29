@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
-use vision_graphql::schema::{ColumnType, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{ColumnType, Schema, Table};
+use viate_graphql::Engine;
 
 mod common;
 
@@ -234,8 +234,8 @@ async fn a_relation_can_be_aggregated() {
 /// count, or the number answers the question the rows were refused.
 #[tokio::test]
 async fn a_relation_aggregate_obeys_the_scope() {
-    use vision_graphql::predicate::{col, principal};
-    use vision_graphql::ScopePolicy;
+    use viate_graphql::predicate::{col, principal};
+    use viate_graphql::ScopePolicy;
 
     let db = common::fresh_db().await;
     let pool = db.pool.clone();
@@ -311,7 +311,7 @@ async fn a_relation_aggregate_obeys_the_scope() {
 /// `count` counts. A default the caller never asked for must not do that.
 #[tokio::test]
 async fn a_default_limit_bounds_nodes_and_leaves_the_count_true() {
-    use vision_graphql::limits::ExecutionLimits;
+    use viate_graphql::limits::ExecutionLimits;
 
     let db = common::fresh_db().await;
     let pool = db.pool.clone();
@@ -472,7 +472,7 @@ async fn every_aggregate_function_runs_and_is_published_as_its_result_type() {
     // What the type system publishes has to be what PostgreSQL answers with.
     let ts = schema.type_system();
     let published = |group: &str, column: &str| -> String {
-        let vision_graphql::type_system::TypeDef::Object { fields, .. } =
+        let viate_graphql::type_system::TypeDef::Object { fields, .. } =
             ts.get(&format!("m_{group}_fields")).expect(group)
         else {
             panic!("{group} should be an object")
@@ -555,7 +555,7 @@ async fn max_min_are_not_offered_where_postgres_has_none() {
 
     // What goes: the schema stops publishing them…
     let ts = schema.type_system();
-    let vision_graphql::type_system::TypeDef::Object { fields, .. } = ts
+    let viate_graphql::type_system::TypeDef::Object { fields, .. } = ts
         .get("t_max_fields")
         .expect("max group exists for label/day")
     else {
@@ -587,7 +587,7 @@ async fn max_min_are_not_offered_where_postgres_has_none() {
 }
 
 fn schema_with_posts() -> Schema {
-    use vision_graphql::schema::Relation;
+    use viate_graphql::schema::Relation;
     Schema::builder()
         .table(
             Table::new("users", "public", "users")
@@ -669,7 +669,7 @@ async fn aggregate_nodes_carry_relations() {
 /// limit) — the other arm of the renderer.
 #[tokio::test]
 async fn aggregate_nodes_carry_relations_under_a_default_limit() {
-    use vision_graphql::limits::ExecutionLimits;
+    use viate_graphql::limits::ExecutionLimits;
     let (engine, _db) = setup_with_posts().await;
     let engine = engine.with_limits(ExecutionLimits::new().default_limit(2));
     let v: Value = engine
@@ -710,7 +710,7 @@ async fn aggregate_order_by_through_a_relation_sorts_by_the_target_table() {
 /// key, not as SQL.
 #[tokio::test]
 async fn a_builder_alias_with_a_quote_round_trips() {
-    use vision_graphql::ast::{AggOp, AggSelect, Field, Operation, QueryArgs, RootBody, RootField};
+    use viate_graphql::ast::{AggOp, AggSelect, Field, Operation, QueryArgs, RootBody, RootField};
     let (engine, _db) = setup_with_posts().await;
     let hostile = "o'brien', (SELECT 1)) --";
     let op = Operation::Query(vec![RootField {

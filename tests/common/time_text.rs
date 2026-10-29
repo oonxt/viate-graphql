@@ -2,8 +2,8 @@
 //! not an emulation of PostgreSQL's offset-aware comparison rules.
 
 use serde_json::json;
-use vision_graphql::schema::{ColumnType, Table};
-use vision_graphql::{Backend, Dialect, Engine, Schema};
+use viate_graphql::schema::{ColumnType, Table};
+use viate_graphql::{Backend, Dialect, Engine, Schema};
 
 pub fn schema(dialect: Dialect, physical_schema: &str) -> Schema {
     Schema::builder()

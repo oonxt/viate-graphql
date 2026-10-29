@@ -1,26 +1,26 @@
 [package]
-name = "vision-graphql-cli"
+name = "viate-graphql-cli"
 version = "0.28.0"
 edition = "2021"
 # Tracks what the dependency graph actually needs, not an aspiration: sqlx 0.9
 # requires 1.94, so nothing here can build below it. CI checks this.
 rust-version = "1.94"
-description = "CLI to generate and validate vision-graphql schema overlays."
+description = "CLI to generate and validate viate-graphql schema overlays."
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/oonxt/vision-graphql"
+repository = "https://github.com/oonxt/viate-graphql"
 
 [[bin]]
-name = "vision-gql"
+name = "viate-gql"
 path = "src/main.rs"
 
 [features]
 default = ["mysql"]
 # MySQL support is a feature so the binary can be built without the driver;
 # on by default, as the published binary has it.
-mysql = ["vision-graphql/mysql", "sqlx/mysql", "sqlx/mysql-rsa"]
+mysql = ["viate-graphql/mysql", "sqlx/mysql", "sqlx/mysql-rsa"]
 
 [dependencies]
-vision-graphql      = { path = "../..", version = "0.28.0", features = ["sqlite"] }
+viate-graphql      = { path = "../..", version = "0.28.0", features = ["sqlite"] }
 clap                = { version = "4", features = ["derive"] }
 sqlx                = { version = "0.9", default-features = false, features = [
     "runtime-tokio",

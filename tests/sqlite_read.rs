@@ -11,9 +11,9 @@
 
 use serde_json::{json, Value};
 use sqlx::sqlite::{SqlitePool, SqlitePoolOptions};
-use vision_graphql::ast::{BoolExpr, CmpOp};
-use vision_graphql::sqlite::connect_options;
-use vision_graphql::{Dialect, Engine, Error, Query, Schema, ScopeSet};
+use viate_graphql::ast::{BoolExpr, CmpOp};
+use viate_graphql::sqlite::connect_options;
+use viate_graphql::{Dialect, Engine, Error, Query, Schema, ScopeSet};
 
 #[path = "common/time_text.rs"]
 mod time_text;
@@ -127,7 +127,7 @@ async fn introspection_reads_tables_types_keys_and_relations() {
         .warnings()
         .iter()
         .filter_map(|w| match w {
-            vision_graphql::SchemaWarning::LooselyTypedTable { table } => Some(table.clone()),
+            viate_graphql::SchemaWarning::LooselyTypedTable { table } => Some(table.clone()),
             _ => None,
         })
         .collect();
@@ -137,7 +137,7 @@ async fn introspection_reads_tables_types_keys_and_relations() {
 #[tokio::test]
 async fn introspection_records_what_it_skipped() {
     let pool = pool().await;
-    let found = vision_graphql::schema::introspect_sqlite::introspect(&pool)
+    let found = viate_graphql::schema::introspect_sqlite::introspect(&pool)
         .await
         .unwrap();
     let skipped: Vec<(String, String)> = found
@@ -540,7 +540,7 @@ async fn what_is_published_is_what_is_implemented() {
     let e = engine().await;
     let ts = e.schema().type_system();
     assert!(ts.mutation_root().is_some());
-    let sdl = vision_graphql::sdl::render(ts);
+    let sdl = viate_graphql::sdl::render(ts);
     assert!(!sdl.contains("stddev"), "{sdl}");
     assert!(sdl.contains("_ilike"), "{sdl}");
     assert!(sdl.contains("distinct_on"), "{sdl}");
@@ -663,7 +663,7 @@ async fn foreign_keys_find_their_table_whatever_the_case() {
 
 #[tokio::test]
 async fn a_hand_built_schema_still_gets_its_pool_checked() {
-    use vision_graphql::schema::{ColumnType, Table};
+    use viate_graphql::schema::{ColumnType, Table};
     let pool = SqlitePoolOptions::new()
         .max_connections(1)
         .connect("sqlite::memory:")
@@ -722,7 +722,7 @@ fn pool_of(e: &Engine<sqlx::Sqlite>) -> SqlitePool {
 #[tokio::test]
 async fn a_persisted_unsupported_query_keeps_its_code() {
     let e = engine().await;
-    let err = vision_graphql::QueryRegistry::compile_all(
+    let err = viate_graphql::QueryRegistry::compile_all(
         &e,
         [(
             "m",
@@ -732,7 +732,7 @@ async fn a_persisted_unsupported_query_keeps_its_code() {
     .err()
     .unwrap();
     assert!(matches!(err, Error::Unsupported { .. }), "{err}");
-    assert_eq!(err.code(), vision_graphql::ErrorCode::Unsupported);
+    assert_eq!(err.code(), viate_graphql::ErrorCode::Unsupported);
 }
 
 /// SQLite compares JSON as text: `json()` and `jsonb()` keep key order, so
@@ -754,7 +754,7 @@ async fn json_columns_publish_no_comparison_but_is_null() {
     .await
     .unwrap();
     let schema = Schema::introspect_sqlite(&pool).await.unwrap().build();
-    let sdl = vision_graphql::sdl::render(schema.type_system());
+    let sdl = viate_graphql::sdl::render(schema.type_system());
     for input in ["input jsonb_comparison_exp", "input json_comparison_exp"] {
         let block = sdl
             .split(input)
@@ -768,7 +768,7 @@ async fn json_columns_publish_no_comparison_but_is_null() {
             .collect();
         assert_eq!(fields, ["_is_null"], "{input}: {block}");
     }
-    let policy = vision_graphql::ScopePolicy::from_toml(
+    let policy = viate_graphql::ScopePolicy::from_toml(
         r#"
         [tables.depts]
         where = { extra = { _eq = { a = 1 } } }
@@ -900,7 +900,7 @@ async fn order_by_through_a_relation() {
 /// subquery. The same answer either way.
 #[tokio::test]
 async fn order_by_through_a_view_keyed_or_not() {
-    use vision_graphql::schema::{ColumnType, Relation, Table};
+    use viate_graphql::schema::{ColumnType, Relation, Table};
     for keyed in [true, false] {
         let mut view = Table::new("active_users", "main", "active_users")
             .column("id", "id", ColumnType::Int8, true)
@@ -946,34 +946,34 @@ async fn order_by_through_a_view_keyed_or_not() {
 #[tokio::test]
 async fn retain_tables_removes_a_table_and_every_way_into_it() {
     const LEDGER: &str = r#"
-    CREATE TABLE _vision_schema_migrations (version TEXT PRIMARY KEY, applied_at TEXT);
+    CREATE TABLE _viate_schema_migrations (version TEXT PRIMARY KEY, applied_at TEXT);
     CREATE TABLE release_notes (
         id INTEGER PRIMARY KEY,
-        version TEXT REFERENCES _vision_schema_migrations(version),
+        version TEXT REFERENCES _viate_schema_migrations(version),
         body TEXT
     );
-    INSERT INTO _vision_schema_migrations VALUES ('0001', '2026-09-28');
+    INSERT INTO _viate_schema_migrations VALUES ('0001', '2026-09-28');
     INSERT INTO release_notes VALUES (1, '0001', 'first');
     "#;
     let pool = pool().await;
     sqlx::raw_sql(LEDGER).execute(&pool).await.unwrap();
 
     let before = Schema::introspect_sqlite(&pool).await.unwrap().build();
-    assert!(before.table("_vision_schema_migrations").is_some());
+    assert!(before.table("_viate_schema_migrations").is_some());
     let (into_ledger, _) = before
         .table("release_notes")
         .unwrap()
         .relations()
-        .find(|(_, r)| r.target_table == "_vision_schema_migrations")
+        .find(|(_, r)| r.target_table == "_viate_schema_migrations")
         .expect("the foreign key derives a relation into the ledger");
     let into_ledger = into_ledger.clone();
 
     let schema = Schema::introspect_sqlite(&pool)
         .await
         .unwrap()
-        .retain_tables(|t| t != "_vision_schema_migrations")
+        .retain_tables(|t| t != "_viate_schema_migrations")
         .build();
-    assert!(schema.table("_vision_schema_migrations").is_none());
+    assert!(schema.table("_viate_schema_migrations").is_none());
     let notes = schema.table("release_notes").unwrap();
     assert!(
         notes.find_relation(&into_ledger).is_none(),
@@ -981,21 +981,21 @@ async fn retain_tables_removes_a_table_and_every_way_into_it() {
     );
     assert!(notes.find_column("version").is_some(), "the column stays");
 
-    let sdl = vision_graphql::sdl::render(schema.type_system());
-    assert!(!sdl.contains("_vision_schema_migrations"), "{sdl}");
+    let sdl = viate_graphql::sdl::render(schema.type_system());
+    assert!(!sdl.contains("_viate_schema_migrations"), "{sdl}");
 
     // A scope policy naming the table, or walking the relation into it, is a
     // build error, not a rule that silently guards nothing.
-    let err = vision_graphql::ScopePolicy::from_toml(
+    let err = viate_graphql::ScopePolicy::from_toml(
         r#"
-        [tables._vision_schema_migrations]
+        [tables._viate_schema_migrations]
         unrestricted = true
         "#,
         &schema,
     )
     .unwrap_err();
     assert!(err.to_string().contains("unknown table"), "{err}");
-    let err = vision_graphql::ScopePolicy::from_toml(
+    let err = viate_graphql::ScopePolicy::from_toml(
         &format!(
             r#"
             [tables.release_notes]
@@ -1009,8 +1009,8 @@ async fn retain_tables_removes_a_table_and_every_way_into_it() {
 
     let e = Engine::new(pool, schema);
     for doc in [
-        "{ _vision_schema_migrations { version } }".to_string(),
-        r#"mutation { insert__vision_schema_migrations(objects: [{version: "0002"}]) { affected_rows } }"#
+        "{ _viate_schema_migrations { version } }".to_string(),
+        r#"mutation { insert__viate_schema_migrations(objects: [{version: "0002"}]) { affected_rows } }"#
             .to_string(),
         format!("{{ release_notes {{ id {into_ledger} {{ version }} }} }}"),
         format!("{{ release_notes(where: {{{into_ledger}: {{version: {{_eq: \"0001\"}}}}}}) {{ id }} }}"),
@@ -1084,7 +1084,7 @@ async fn a_page_is_picked_before_the_projection() {
 #[tokio::test]
 async fn a_bind_inside_a_copied_order_term_binds_in_place() {
     let pool = pool().await;
-    let overlay = vision_graphql::schema::config::parse(
+    let overlay = viate_graphql::schema::config::parse(
         r#"
         [[tables.posts.relations]]
         name = "first_tag"

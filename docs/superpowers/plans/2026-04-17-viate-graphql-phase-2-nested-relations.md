@@ -1,4 +1,4 @@
-# Vision-GraphQL Phase 2 — Nested Relations Implementation Plan
+# Viate-GraphQL Phase 2 — Nested Relations Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -684,7 +684,7 @@ Remove the temporary `Field::Relation { .. } => { return Err(...); }` arm added 
 Run: `INSTA_UPDATE=always cargo test --lib sql::tests`
 Expected: all snapshots update, new `render_array_relation.snap` approved.
 
-Inspect: `cat src/snapshots/vision_graphql__sql__tests__render_array_relation.snap`
+Inspect: `cat src/snapshots/viate_graphql__sql__tests__render_array_relation.snap`
 
 Expected SQL skeleton:
 ```
@@ -781,7 +781,7 @@ The `users_posts_schema` helper in the tests mod only defined the `users.posts` 
 Run: `INSTA_UPDATE=always cargo test --lib sql::tests::render_object_relation`
 Expected: new snapshot approved.
 
-Inspect: `cat src/snapshots/vision_graphql__sql__tests__render_object_relation.snap`
+Inspect: `cat src/snapshots/viate_graphql__sql__tests__render_object_relation.snap`
 
 Expected contains: `(SELECT row_to_json(...) FROM (... LIMIT 1) ...) AS "user"`.
 
@@ -905,7 +905,7 @@ In `src/sql.rs`, find the `BoolExpr::Relation { .. }` arm inside `render_bool_ex
 Run: `INSTA_UPDATE=always cargo test --lib sql::tests::render_where_relation_exists`
 Expected: snapshot accepted.
 
-Inspect: `cat src/snapshots/vision_graphql__sql__tests__render_where_relation_exists.snap`
+Inspect: `cat src/snapshots/viate_graphql__sql__tests__render_where_relation_exists.snap`
 
 Expected contains: `EXISTS (SELECT 1 FROM "public"."posts" e2 WHERE e2."user_id" = t0."id" AND e2."title" = $1)`.
 
@@ -1291,8 +1291,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Relation, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{PgType, Relation, Schema, Table};
+use viate_graphql::Engine;
 
 fn schema() -> Schema {
     Schema::builder()
@@ -1440,7 +1440,7 @@ async fn where_relation_exists_filter() {
 
 - [ ] **Step 2: Expose `Relation` at crate root**
 
-The test imports `vision_graphql::schema::Relation` — already public. No change needed unless `cargo test --test integration_nested` surfaces visibility errors, in which case add `pub use schema::Relation;` to `src/lib.rs`.
+The test imports `viate_graphql::schema::Relation` — already public. No change needed unless `cargo test --test integration_nested` surfaces visibility errors, in which case add `pub use schema::Relation;` to `src/lib.rs`.
 
 - [ ] **Step 3: Run integration tests**
 
