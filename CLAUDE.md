@@ -90,16 +90,20 @@ its place when a reader would otherwise "fix" the thing it protects.
 2. **Build the change with its tests.** A regression test for a bug should be
    written so that *reaching the assertion* is meaningful — several here would
    abort the process without the fix, and that is the test.
-3. **Gate before review**, all four, all clean:
+3. **Gate before review**, all five, all clean:
    ```
    cargo fmt --all
    cargo clippy --workspace --all-targets --all-features -- -D warnings
+   RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps --all-features
    cargo nextest run --workspace --all-features --test-threads 4
    cargo test --workspace --all-features --doc
    ```
    `--all-features` is the `sqlite` backend: its suite runs in memory and
    costs nothing, and a seam in `dialect.rs` that only one backend exercises
-   is exactly the kind that rots.
+   is exactly the kind that rots. The `cargo doc` line is CI's `rustdoc`
+   step verbatim; the local list lacked it once, and public docs linking to
+   private items kept main's CI red through three releases without any of
+   the other four gates noticing.
 4. **Review the branch, not each commit.** `/code-review <branch> high` at the
    end. The reviews that found the most here found it by seeing the whole
    surface at once: the worst bug was code from the first commit that only
