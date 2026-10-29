@@ -11,8 +11,8 @@
 //! substituted would give a different statement per request and buy nothing.
 //!
 //! ```no_run
-//! # use vision_graphql::{Engine, policy::ScopePolicy, predicate::{col, principal}};
-//! # async fn f(engine: Engine, schema: vision_graphql::Schema) -> vision_graphql::error::Result<()> {
+//! # use viate_graphql::{Engine, policy::ScopePolicy, predicate::{col, principal}};
+//! # async fn f(engine: Engine, schema: viate_graphql::Schema) -> viate_graphql::error::Result<()> {
 //! let policy = ScopePolicy::builder()
 //!     .allow("orders", col("user_id").eq(principal()))
 //!     .validate(&schema)?;
@@ -21,7 +21,7 @@
 //! let q = engine.compile_scoped("query($id: Int!) { orders(where: {id: {_eq: $id}}) { id } }", &policy)?;
 //!
 //! // per request:
-//! let principal = vision_graphql::predicate::Principal::new().set("principal", 7);
+//! let principal = viate_graphql::predicate::Principal::new().set("principal", 7);
 //! let data = engine.execute_scoped(&q, Some(serde_json::json!({"id": 1})), &principal).await?;
 //! # let _ = data; Ok(())
 //! # }

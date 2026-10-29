@@ -1,4 +1,4 @@
-//! # vision-graphql
+//! # viate-graphql
 //!
 //! A Hasura-style GraphQL-to-SQL query engine for PostgreSQL, SQLite (the
 //! `sqlite` feature) and MySQL (the `mysql` feature; see [`backend`]).
@@ -10,7 +10,7 @@
 //! ```no_run
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! use sqlx::postgres::PgPoolOptions;
-//! use vision_graphql::{Engine, Query, Schema};
+//! use viate_graphql::{Engine, Query, Schema};
 //!
 //! let pool = PgPoolOptions::new()
 //!     .connect("postgres://localhost/mydb")

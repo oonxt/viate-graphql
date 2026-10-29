@@ -1,6 +1,6 @@
 use serde_json::json;
-use vision_graphql::limits::ExecutionLimits;
-use vision_graphql::{Engine, Query, Schema};
+use viate_graphql::limits::ExecutionLimits;
+use viate_graphql::{Engine, Query, Schema};
 
 mod common;
 

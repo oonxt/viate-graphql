@@ -5,7 +5,7 @@
 
 ## Motivation
 
-A single GraphQL mutation request is already atomic in vision-graphql — `render_mutation` (`src/sql.rs:723`) composes every top-level mutation field into one `WITH … SELECT` SQL statement, which PostgreSQL treats as an implicit single-statement transaction.
+A single GraphQL mutation request is already atomic in viate-graphql — `render_mutation` (`src/sql.rs:723`) composes every top-level mutation field into one `WITH … SELECT` SQL statement, which PostgreSQL treats as an implicit single-statement transaction.
 
 What is **not** atomic today is work that must span **multiple** `Engine::query` / `Engine::run` calls. The typical trigger is id-chaining: the second request needs a value returned by the first. Common cases:
 

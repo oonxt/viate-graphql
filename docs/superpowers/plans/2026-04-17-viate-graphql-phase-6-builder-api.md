@@ -1,4 +1,4 @@
-# Vision-GraphQL Phase 6 — Rust Builder API Implementation Plan
+# Viate-GraphQL Phase 6 — Rust Builder API Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -89,7 +89,7 @@ In `src/engine.rs`, append to `impl Engine`:
     pub async fn run(&self, op: impl crate::builder::IntoOperation) -> Result<Value> {
         let operation = op.into_operation();
         let (sql, binds) = render(&operation, &self.schema)?;
-        tracing::debug!(target: "vision_graphql::engine", %sql, binds = binds.len(), "executing");
+        tracing::debug!(target: "viate_graphql::engine", %sql, binds = binds.len(), "executing");
         crate::executor::execute(&self.pool, &sql, &binds).await
     }
 ```
@@ -1139,8 +1139,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Relation, Schema, Table};
-use vision_graphql::{Engine, Mutation, Query};
+use viate_graphql::schema::{PgType, Relation, Schema, Table};
+use viate_graphql::{Engine, Mutation, Query};
 
 fn schema() -> Schema {
     Schema::builder()
@@ -1216,7 +1216,7 @@ async fn builder_query_with_relation() {
             Query::from("users")
                 .select(&["name"])
                 .with_relation("posts", Query::from("posts").select(&["title"]))
-                .order_by("id", vision_graphql::ast::OrderDir::Asc),
+                .order_by("id", viate_graphql::ast::OrderDir::Asc),
         )
         .await
         .expect("run ok");
@@ -1312,7 +1312,7 @@ async fn builder_delete_by_where() {
 }
 ```
 
-`ast::OrderDir` is used in `builder_query_with_relation`; `vision_graphql::ast` is already a `pub mod`.
+`ast::OrderDir` is used in `builder_query_with_relation`; `viate_graphql::ast` is already a `pub mod`.
 
 - [ ] **Step 2: Run**
 

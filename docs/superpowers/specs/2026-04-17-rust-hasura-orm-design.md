@@ -1,4 +1,4 @@
-# Vision-GraphQL: Hasura-style ORM in Rust
+# Viate-GraphQL: Hasura-style ORM in Rust
 
 **Status:** Draft · **Date:** 2026-04-17
 
@@ -84,7 +84,7 @@ let json = engine.run(
 Single crate, internal modules:
 
 ```
-vision-graphql/
+viate-graphql/
   src/
     ast/          # IR types
     parser/       # GraphQL → IR

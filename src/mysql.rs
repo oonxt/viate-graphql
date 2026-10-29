@@ -37,7 +37,7 @@ pub const MIN_VERSION: (u32, u32, u32) = (8, 0, 19);
 /// ```no_run
 /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let pool = sqlx::mysql::MySqlPoolOptions::new()
-///     .connect_with(vision_graphql::mysql::connect_options("mysql://root:root@127.0.0.1/app")?)
+///     .connect_with(viate_graphql::mysql::connect_options("mysql://root:root@127.0.0.1/app")?)
 ///     .await?;
 /// # Ok(()) }
 /// ```

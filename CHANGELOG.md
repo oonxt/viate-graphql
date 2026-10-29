@@ -3,6 +3,24 @@
 Notable changes per release. Versions before 0.13.0 are reconstructed from the
 release commits; entries from 0.13.0 on are written as the work lands.
 
+## Unreleased
+
+### Changed
+
+- **Renamed to `viate-graphql`** (repository `oonxt/viate-graphql`). The
+  crates are `viate-graphql` (was `vision-graphql`) and `viate-graphql-cli`
+  (was `vision-graphql-cli`), the binary is `viate-gql` (was `vision-gql`),
+  and imports move from `vision_graphql::…` to `viate_graphql::…`; the API
+  itself is unchanged. The old name also appears in two things a client can
+  see: the aliases the engine gives its helper columns
+  (`__viate_graphql_ob<n>`, `__viate_graphql_rn`, `__viate_graphql_ord` — a
+  compiled statement's text differs from the same statement compiled by the
+  old name, the rows are the same) and the prefix of the scope guard's
+  violation message (now `viate_graphql: scope check violation …` in
+  `errors[].message`), so anything matching the old spellings stops
+  matching. Entries for releases up to 0.28.0 were published under the old
+  names; they are shown with the new names substituted.
+
 ## 0.28.0 — 2026-10-27
 
 ### Fixed
@@ -39,7 +57,7 @@ release commits; entries from 0.13.0 on are written as the work lands.
   else; the projection runs over the rows of that page only, and the outer
   query orders them again. An `order_by` through a relation is evaluated
   inside the page — it decides which rows are in it — once, and carried out
-  as a `__vision_graphql_ob<n>` column the outer `ORDER BY` reads. The same
+  as a `__viate_graphql_ob<n>` column the outer `ORDER BY` reads. The same
   rows in the same order; the plan reads each relation once per page row
   (`tests/integration_paging.rs` asserts the loop count). A list without
   `limit` or `offset`, an object relation, a `_by_pk` and an `_aggregate`
@@ -68,7 +86,7 @@ release commits; entries from 0.13.0 on are written as the work lands.
 
 - **MySQL backend** (`mysql` feature): `Engine<sqlx::MySql>`,
   `Schema::introspect_mysql`, `mysql::connect_options` / `mysql::verify`, and
-  `vision-gql` on a `mysql://` URL. Queries, aggregates, JSON path reads, the
+  `viate-gql` on a `mysql://` URL. Queries, aggregates, JSON path reads, the
   jsonb operators, scoped execution, compiled statements and mutations, on
   MySQL 8.0.19 or later; MariaDB is refused. What MySQL does differently by
   default is answered as PostgreSQL would, and each answer is checked against
@@ -87,7 +105,7 @@ release commits; entries from 0.13.0 on are written as the work lands.
 
 ### Changed
 
-- **`__vision_graphql_rn`**, the column the window form of `distinct_on`
+- **`__viate_graphql_rn`**, the column the window form of `distinct_on`
   numbers rows by, is no longer quoted in the rendered SQL. Same rows; a
   compiled statement's text on SQLite changes by two characters.
 - The `plan` module's read-back of a mutation's `returning` rows is wrapped as
@@ -188,7 +206,7 @@ release commits; entries from 0.13.0 on are written as the work lands.
   on every kind of target, on both backends, including inside a spawned
   task. Code that is itself generic over the target, bounded
   `A: sqlx::Acquire<'c, Database = DB>` to forward it to a twin, no longer
-  compiles: bound it `A: vision_graphql::Target<DB>` instead.
+  compiles: bound it `A: viate_graphql::Target<DB>` instead.
 
 ## 0.24.0 — 2026-09-24
 
@@ -203,7 +221,7 @@ release commits; entries from 0.13.0 on are written as the work lands.
   the scope guards — against a SQLite database, with the schema read by
   `Schema::introspect_sqlite`. A mutation there is a sequence of statements
   in one transaction rather than one statement of data-modifying CTEs
-  (`vision_graphql::plan`), which SQLite does not have; the README's
+  (`viate_graphql::plan`), which SQLite does not have; the README's
   *Backends* table records where that shows (later fields see earlier
   writes; `returning { relation }` sees the whole table). The things SQLite answers differently by
   default are answered PostgreSQL's way: booleans and JSON columns come back
@@ -213,11 +231,11 @@ release commits; entries from 0.13.0 on are written as the work lands.
   reached anyway — `stddev`/`variance`, `count` over several columns, a
   `WITHOUT ROWID` table, `on_conflict` on a row of defaults — with the new
   `Error::Unsupported` (`UNSUPPORTED`).
-  `vision_graphql::sqlite::connect_options` builds a pool with the pragmas
+  `viate_graphql::sqlite::connect_options` builds a pool with the pragmas
   the SQL relies on, and introspection refuses a pool without them. See the
   README's *Backends* for the full table, including the column types that are
   left out (`NUMERIC`, `BLOB`) and why.
-- **`vision-gql` on SQLite.** `generate`, `diff` and `sdl` take a
+- **`viate-gql` on SQLite.** `generate`, `diff` and `sdl` take a
   `sqlite://` URL and introspect the file; `--schema`, which is PostgreSQL's,
   is refused for it rather than ignored, and the SDL is the one a SQLite
   engine publishes.
@@ -227,7 +245,7 @@ release commits; entries from 0.13.0 on are written as the work lands.
 - **`SchemaWarning::LooselyTypedTable`** for a SQLite table that is not
   `STRICT`: the declared types the schema was derived from are not enforced.
   `SchemaBuilder::loosely_typed` marks tables on a hand-built schema; the
-  `vision-gql diff` report carries them as `table_warnings`.
+  `viate-gql diff` report carries them as `table_warnings`.
 
 ### Fixed
 
@@ -464,7 +482,7 @@ release commits; entries from 0.13.0 on are written as the work lands.
   table and schema.
 - The SDL export and `__schema.directives` list the two directives below, and
   the SDL always defines `scalar jsonb`. An SDL file checked in CI gains those
-  lines on the next `vision-gql sdl`.
+  lines on the next `viate-gql sdl`.
 
 ### Added
 
@@ -495,7 +513,7 @@ release commits; entries from 0.13.0 on are written as the work lands.
   used anywhere else it is refused too. An absent variable is still an error.
 - **`__schema.directives` and the SDL now list the two directives**, with
   `@choices(values: [jsonb!]!)` publishing the `jsonb` scalar it names. Any
-  other directive is still refused. An SDL file checked in CI (`vision-gql
+  other directive is still refused. An SDL file checked in CI (`viate-gql
   sdl --check`) gains two `directive` lines and possibly `scalar jsonb`.
 
 - **A policy can say which parameters it references.**
@@ -578,7 +596,7 @@ release commits; entries from 0.13.0 on are written as the work lands.
   related on `serial` alone). The engine now warns instead of staying silent:
   structured [`SchemaWarning`]s from the new `Schema::warnings()`, logged via
   `tracing::warn` once when an `Engine` is constructed, and reported by
-  `vision-gql diff` on both text and JSON output (a `relation_warnings` array)
+  `viate-gql diff` on both text and JSON output (a `relation_warnings` array)
   without counting as drift — the exit code does not change. Rendering is
   untouched; the two ways out the message names are a per-query `order_by`, or
   extending the mapping until a unique constraint covers it. Relations derived
@@ -588,7 +606,7 @@ release commits; entries from 0.13.0 on are written as the work lands.
   into the new `Table::unique_indexes`, kept apart from `unique_constraints`
   because `ON CONFLICT ON CONSTRAINT` cannot name an index. A relation whose
   mapping is itself broken (a column the table does not expose) is not warned
-  about — that mistake already fails loudly at query time. `vision-gql
+  about — that mistake already fails loudly at query time. `viate-gql
   validate` stays offline and cannot run this check; when the overlay declares
   object relations it now says so and points at `diff`.
 - **Object relation fields publish `where` and `order_by`.** The lowering has
@@ -879,7 +897,7 @@ used to be silent, so read **Breaking** before upgrading.
 - **`smallint` and `character(n)` columns silently vanished** from the schema,
   as any unmapped type does. Both are mapped now. What still has no mapping —
   arrays, `bytea`, `interval`, `inet` — is recorded during introspection instead
-  of only logged, and `vision-gql diff` reports it: the column being absent is
+  of only logged, and `viate-gql diff` reports it: the column being absent is
   otherwise impossible to notice from the outside, and takes any key or relation
   that depended on it along with it.
 
@@ -989,10 +1007,10 @@ used to be silent, so read **Breaking** before upgrading.
   mutation fields, `on_conflict` appears only where a unique constraint exists.
   The answer travels as a bound parameter, so a document mixing introspection
   with data is still one statement.
-- **SDL export**: `vision-gql sdl` writes the schema a database plus overlay
+- **SDL export**: `viate-gql sdl` writes the schema a database plus overlay
   exposes, with `--check` for CI (exit 1 on drift, summarised by type). Needs no
   runtime flag — it is a build-time artifact. In code:
-  `vision_graphql::sdl::render(schema.type_system())`.
+  `viate_graphql::sdl::render(schema.type_system())`.
 - `type_system::TypeSystem`, `sdl`, `introspection` modules; `Schema::type_system`,
   `Schema::introspection_enabled`, `SchemaBuilder::enable_introspection`,
   `SchemaBuilder::retain_tables`.
@@ -1046,7 +1064,7 @@ used to be silent, so read **Breaking** before upgrading.
   of a request and bind variables per request.
 - Parsed documents cached across requests (`ParseCache`).
 
-## 0.11.1 (vision-graphql-cli)
+## 0.11.1 (viate-graphql-cli)
 
 - `diff` validates `schema` repoints.
 - `write_header` uses `HEADER_PREFIX` rather than a copy of it.

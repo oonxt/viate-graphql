@@ -542,7 +542,7 @@ impl<'a> Builder<'a> {
             .filter(|t| {
                 if t.columns().next().is_none() {
                     tracing::warn!(
-                        target: "vision_graphql::type_system",
+                        target: "viate_graphql::type_system",
                         table = %t.exposed_name,
                         "skipping table with no exposed columns"
                     );

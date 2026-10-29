@@ -10,7 +10,7 @@ mod common;
 
 /// A seeded database. The caller holds the returned [`common::TestDb`] for as
 /// long as the CLI needs to reach it: on the container path, dropping it
-/// removes the server — returning only the URL here once meant every `vision-gql`
+/// removes the server — returning only the URL here once meant every `viate-gql`
 /// invocation below got connection-refused, in the one configuration CI (which
 /// always sets `TEST_DATABASE_URL`) never runs.
 async fn boot_pg() -> common::TestDb {
@@ -46,7 +46,7 @@ async fn boot_pg() -> common::TestDb {
 async fn generate_to_stdout_includes_all_tables() {
     let db = boot_pg().await;
     let url = db.url.clone();
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["generate", "--url", &url])
         .output()
@@ -66,7 +66,7 @@ async fn generate_to_stdout_includes_all_tables() {
 async fn generate_ignore_tables_filters() {
     let db = boot_pg().await;
     let url = db.url.clone();
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["generate", "--url", &url, "--ignore-tables", "audit_*"])
         .output()
@@ -96,7 +96,7 @@ async fn generate_reads_multiple_schemas_and_keys_stanzas_by_exposed_name() {
     .expect("seed audit schema");
     pool.close().await;
 
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["generate", "--url", &url, "--schema", "public,audit"])
         .output()
@@ -134,7 +134,7 @@ async fn generate_defaults_to_public_only() {
         .expect("seed audit schema");
     pool.close().await;
 
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["generate", "--url", &url])
         .output()
@@ -171,7 +171,7 @@ async fn diff_catches_repoint_to_table_missing_columns() {
         schema = "archive"
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args([
             "diff",
@@ -207,7 +207,7 @@ async fn diff_reports_unverifiable_repoint_without_failing() {
         schema = "archive"
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["diff", "--url", &url, "--config", p.to_str().unwrap()])
         .output()
@@ -233,7 +233,7 @@ fn temp_dir() -> std::path::PathBuf {
     use std::sync::atomic::{AtomicU32, Ordering};
     static NEXT: AtomicU32 = AtomicU32::new(0);
     let dir = std::env::temp_dir().join(format!(
-        "vision-gql-e2e-{}-{}",
+        "viate-gql-e2e-{}-{}",
         std::process::id(),
         NEXT.fetch_add(1, Ordering::Relaxed)
     ));
@@ -259,7 +259,7 @@ async fn diff_clean_overlay_exits_zero() {
         hide_columns = ["secret"]
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["diff", "--url", &url, "--config", p.to_str().unwrap()])
         .output()
@@ -288,7 +288,7 @@ fn validate_notes_object_relations_need_diff() {
         mapping = [["serial", "serial"]]
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["validate", p.to_str().unwrap()])
         .output()
@@ -296,7 +296,7 @@ fn validate_notes_object_relations_need_diff() {
     assert!(out.status.success());
     let s = String::from_utf8(out.stdout).unwrap();
     assert!(s.contains("OK"), "got: {s}");
-    assert!(s.contains("vision-gql diff"), "got: {s}");
+    assert!(s.contains("viate-gql diff"), "got: {s}");
     let _ = std::fs::remove_file(&p);
 }
 
@@ -318,7 +318,7 @@ async fn diff_warns_on_underdetermined_object_relation_without_failing() {
         mapping = [["title", "name"]]
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["diff", "--url", &url, "--config", p.to_str().unwrap()])
         .output()
@@ -367,7 +367,7 @@ async fn diff_stale_hide_column_exits_one() {
         hide_columns = ["password_hash"]
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["diff", "--url", &url, "--config", p.to_str().unwrap()])
         .output()
@@ -389,7 +389,7 @@ async fn diff_json_format_exits_one_with_machine_output() {
         hide_columns = ["password_hash"]
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args([
             "diff",
@@ -419,7 +419,7 @@ async fn diff_ignore_tables_filters_findings() {
         hide_columns = ["password_hash"]
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args([
             "diff",
@@ -440,7 +440,7 @@ async fn diff_ignore_tables_filters_findings() {
 async fn generate_force_required_to_overwrite() {
     let db = boot_pg().await;
     let url = db.url.clone();
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let dir = temp_dir();
     let path = dir.join("schema.toml");
 
@@ -485,7 +485,7 @@ fn validate_clean_exits_zero() {
         expose_as = "profiles"
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["validate", p.to_str().unwrap()])
         .output()
@@ -506,7 +506,7 @@ fn validate_dup_expose_as_exits_two() {
         expose_as = "people"
         "#,
     );
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["validate", p.to_str().unwrap()])
         .output()
@@ -517,7 +517,7 @@ fn validate_dup_expose_as_exits_two() {
 
 #[test]
 fn missing_url_and_env_exits_two() {
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["generate"])
         .env_remove("DATABASE_URL")
@@ -532,7 +532,7 @@ fn missing_url_and_env_exits_two() {
 async fn sdl_renders_the_exposed_schema_and_honours_the_overlay() {
     let db = boot_pg().await;
     let url = db.url.clone();
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
 
     let out = Command::new(bin)
         .args(["sdl", "--url", &url])
@@ -580,7 +580,7 @@ async fn sdl_renders_the_exposed_schema_and_honours_the_overlay() {
 async fn sdl_check_exits_one_when_the_file_is_stale() {
     let db = boot_pg().await;
     let url = db.url.clone();
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let path = temp_dir().join("schema.graphql");
 
     let out = Command::new(bin)
@@ -653,7 +653,7 @@ async fn diff_reports_columns_with_no_type_mapping() {
         .unwrap();
     pool.close().await;
 
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
     let out = Command::new(bin)
         .args(["diff", "--url", &url, "--config", "/dev/null"])
         .output()
@@ -702,7 +702,7 @@ async fn boot_sqlite(name: &str) -> SqliteFile {
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("app.db");
     let url = format!("sqlite://{}", path.display());
-    let opts = vision_graphql::sqlite::connect_options(&url)
+    let opts = viate_graphql::sqlite::connect_options(&url)
         .unwrap()
         .create_if_missing(true);
     let pool = sqlx::sqlite::SqlitePoolOptions::new()
@@ -728,7 +728,7 @@ async fn boot_sqlite(name: &str) -> SqliteFile {
 async fn sqlite_generate_diff_and_sdl() {
     let db = boot_sqlite("gen").await;
     let url = db.url.as_str();
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
 
     let out = Command::new(bin)
         .args(["generate", "--url", url])
@@ -881,7 +881,7 @@ CREATE TABLE posts (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(100) NOT NU
     )
     .await;
     let url = db.url.as_str();
-    let bin = env!("CARGO_BIN_EXE_vision-gql");
+    let bin = env!("CARGO_BIN_EXE_viate-gql");
 
     let out = Command::new(bin)
         .args(["generate", "--url", url])

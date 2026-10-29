@@ -1,7 +1,7 @@
 //! Compare a schema.toml against a live database for stale references.
 
 use anyhow::{Context, Result};
-use vision_graphql::schema::config::parse;
+use viate_graphql::schema::config::parse;
 
 use crate::analyze::{find_drift, schema_warnings};
 use crate::filter::TableFilter;

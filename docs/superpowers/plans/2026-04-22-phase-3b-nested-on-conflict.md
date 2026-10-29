@@ -20,7 +20,7 @@
 
 **Create:**
 - `tests/integration_nested_on_conflict.rs` — fresh fixture + integration tests.
-- `src/snapshots/vision_graphql__sql__tests__render_nested_on_conflict_do_nothing_rewrite.snap` — lock the rewrite shape.
+- `src/snapshots/viate_graphql__sql__tests__render_nested_on_conflict_do_nothing_rewrite.snap` — lock the rewrite shape.
 
 **Do not touch:**
 - `src/builder.rs` — the AST change adds an optional field; if `InsertObject` or `NestedArrayInsert` construction sites in builder.rs compile-fail, add `on_conflict: None` to them mechanically. Check via grep in Task 2.
@@ -43,8 +43,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Relation, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{PgType, Relation, Schema, Table};
+use viate_graphql::Engine;
 
 fn schema() -> Schema {
     Schema::builder()
@@ -1433,7 +1433,7 @@ Expected first run: `.snap.new` file created.
 Inspect:
 
 ```
-cat src/snapshots/vision_graphql__sql__tests__render_nested_on_conflict_do_nothing_rewrite.snap.new
+cat src/snapshots/viate_graphql__sql__tests__render_nested_on_conflict_do_nothing_rewrite.snap.new
 ```
 
 Must contain (substring match, any order within the nested user CTE):

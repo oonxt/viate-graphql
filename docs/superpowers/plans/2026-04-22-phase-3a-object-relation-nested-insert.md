@@ -21,7 +21,7 @@
 
 **Create:**
 - `tests/integration_nested_insert_object.rs` — all Phase 3A integration tests with a fresh fixture that adds an `organizations` table (for two-level object nesting).
-- `src/snapshots/vision_graphql__sql__tests__render_insert_with_nested_object.snap` — one new snapshot for Phase 3A's canonical CTE shape.
+- `src/snapshots/viate_graphql__sql__tests__render_insert_with_nested_object.snap` — one new snapshot for Phase 3A's canonical CTE shape.
 
 **Do not touch:**
 - `src/executor.rs`, `src/engine.rs`, `src/builder.rs` — unaffected by Phase 3A.
@@ -44,8 +44,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Relation, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{PgType, Relation, Schema, Table};
+use viate_graphql::Engine;
 
 fn schema() -> Schema {
     Schema::builder()
@@ -1649,12 +1649,12 @@ Find `mod tests` in `src/sql.rs` (around line 1485). At the end (just before the
 
 Run: `cargo test --lib render_insert_with_nested_object`
 
-Expected first run: an `.snap.new` file appears at `src/snapshots/vision_graphql__sql__tests__render_insert_with_nested_object.snap.new`.
+Expected first run: an `.snap.new` file appears at `src/snapshots/viate_graphql__sql__tests__render_insert_with_nested_object.snap.new`.
 
 Inspect:
 
 ```
-cat src/snapshots/vision_graphql__sql__tests__render_insert_with_nested_object.snap.new
+cat src/snapshots/viate_graphql__sql__tests__render_insert_with_nested_object.snap.new
 ```
 
 Expected substrings (order matters):

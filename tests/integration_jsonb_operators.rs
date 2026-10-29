@@ -5,8 +5,8 @@
 //! database's rules, not ours.
 
 use serde_json::{json, Value};
-use vision_graphql::schema::{ColumnType, Schema, Table};
-use vision_graphql::{Engine, Error, ScopePolicy};
+use viate_graphql::schema::{ColumnType, Schema, Table};
+use viate_graphql::{Engine, Error, ScopePolicy};
 
 mod common;
 
@@ -205,7 +205,7 @@ async fn a_scope_policy_can_filter_on_a_key() {
 #[tokio::test]
 async fn published_with_the_operand_types_they_take() {
     let (engine, _db) = setup().await;
-    let sdl = vision_graphql::sdl::render(engine.schema().type_system());
+    let sdl = viate_graphql::sdl::render(engine.schema().type_system());
     let block = sdl
         .split("input jsonb_comparison_exp")
         .nth(1)

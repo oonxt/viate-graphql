@@ -3,9 +3,9 @@
 use crate::filter::TableFilter;
 use serde::Serialize;
 use std::collections::BTreeMap;
-use vision_graphql::schema::config::ConfigOverlay;
-use vision_graphql::schema::introspect::{IntrospectedDb, IntrospectedTable};
-use vision_graphql::Dialect;
+use viate_graphql::schema::config::ConfigOverlay;
+use viate_graphql::schema::introspect::{IntrospectedDb, IntrospectedTable};
+use viate_graphql::Dialect;
 
 #[derive(Debug, Serialize, Default)]
 pub struct DiffReport {
@@ -51,7 +51,7 @@ pub struct TableWarning {
     pub message: String,
 }
 
-/// Both kinds of [`vision_graphql::SchemaWarning`] the report carries.
+/// Both kinds of [`viate_graphql::SchemaWarning`] the report carries.
 #[derive(Debug, Default)]
 pub struct Warnings {
     pub relations: Vec<RelationWarning>,
@@ -59,7 +59,7 @@ pub struct Warnings {
 }
 
 /// See [`DiffReport::relation_warnings`]. A flattened
-/// [`vision_graphql::SchemaWarning`] with its rendered message, so a consumer
+/// [`viate_graphql::SchemaWarning`] with its rendered message, so a consumer
 /// can either anchor on the fields or just show the text.
 #[derive(Debug, Serialize)]
 pub struct RelationWarning {
@@ -165,11 +165,11 @@ impl DiffReport {
 /// Consumes the [`IntrospectedDb`] (the merge does); call after [`find_drift`],
 /// which only borrows it.
 pub fn schema_warnings(
-    builder: vision_graphql::schema::SchemaBuilder,
+    builder: viate_graphql::schema::SchemaBuilder,
     cfg: &ConfigOverlay,
     filter: &TableFilter,
 ) -> Warnings {
-    use vision_graphql::schema::merge;
+    use viate_graphql::schema::merge;
     let schema = merge::apply_config(builder, cfg).build();
     // `--include`/`--ignore` are matched against overlay keys — pre-expose_as
     // names — everywhere else in this report, and a warning carries the *final*
@@ -186,7 +186,7 @@ pub fn schema_warnings(
     for w in schema.warnings() {
         let message = w.to_string();
         match w {
-            vision_graphql::SchemaWarning::NonDeterministicObjectRelation {
+            viate_graphql::SchemaWarning::NonDeterministicObjectRelation {
                 table,
                 relation,
                 target,
@@ -198,7 +198,7 @@ pub fn schema_warnings(
                 remote_columns,
                 message,
             }),
-            vision_graphql::SchemaWarning::LooselyTypedTable { table } if keep(&table) => {
+            viate_graphql::SchemaWarning::LooselyTypedTable { table } if keep(&table) => {
                 out.tables.push(TableWarning { table, message })
             }
             // A future warning variant still reaches serving deployments via
@@ -219,7 +219,7 @@ pub fn find_drift(
     // Index tables under the names the schema actually exposes them as — which
     // is what an overlay key refers to. With one schema that is just the table
     // name; with several, later schemas are prefixed.
-    let exposed = vision_graphql::schema::merge::exposed_name_map(db);
+    let exposed = viate_graphql::schema::merge::exposed_name_map(db);
 
     // What introspection could not map is a property of the database and the
     // engine, not of the overlay, so it is reported rather than judged. Filtered
@@ -406,9 +406,9 @@ pub fn find_drift(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use vision_graphql::schema::config::{RelationKindOverlay, RelationOverlay, TableOverlay};
-    use vision_graphql::schema::introspect::{IntrospectedColumn, IntrospectedTable};
-    use vision_graphql::schema::ColumnType;
+    use viate_graphql::schema::config::{RelationKindOverlay, RelationOverlay, TableOverlay};
+    use viate_graphql::schema::introspect::{IntrospectedColumn, IntrospectedTable};
+    use viate_graphql::schema::ColumnType;
 
     fn db_users_only() -> IntrospectedDb {
         let mut db = IntrospectedDb::default();
@@ -728,7 +728,7 @@ mod tests {
     fn underdetermined_object_relation_is_warned() {
         let cfg = pathogen_cfg(vec![("serial".into(), "serial".into())]);
         let warnings = schema_warnings(
-            vision_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
+            viate_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
             &cfg,
             &no_filter(),
         )
@@ -747,7 +747,7 @@ mod tests {
             ("type".into(), "type".into()),
         ]);
         let warnings = schema_warnings(
-            vision_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
+            viate_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
             &cfg,
             &no_filter(),
         )
@@ -761,7 +761,7 @@ mod tests {
         let ignore = vec!["results".to_string()];
         let f = TableFilter::new(None, Some(&ignore)).unwrap();
         let warnings = schema_warnings(
-            vision_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
+            viate_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
             &cfg,
             &f,
         )
@@ -781,7 +781,7 @@ mod tests {
         let include = vec!["results".to_string()];
         let f = TableFilter::new(Some(&include), None).unwrap();
         let warnings = schema_warnings(
-            vision_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
+            viate_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
             &cfg,
             &f,
         )
@@ -792,7 +792,7 @@ mod tests {
         let ignore = vec!["results".to_string()];
         let f = TableFilter::new(None, Some(&ignore)).unwrap();
         let warnings = schema_warnings(
-            vision_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
+            viate_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
             &cfg,
             &f,
         )
@@ -814,7 +814,7 @@ mod tests {
         );
         assert!(!r.is_clean(), "the typo must still be drift");
         let warnings = schema_warnings(
-            vision_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
+            viate_graphql::schema::merge::build_from_introspection(db_results_and_dict()),
             &cfg,
             &no_filter(),
         )

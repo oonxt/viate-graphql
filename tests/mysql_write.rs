@@ -2,7 +2,7 @@
 //! `tests/mysql_read.rs`.
 //!
 //! A mutation here is a sequence of statements in one transaction (see
-//! `vision_graphql::plan`), with rows identified by primary key and read
+//! `viate_graphql::plan`), with rows identified by primary key and read
 //! back after each write, MySQL having no `RETURNING`. What these tests pin
 //! is that the sequence answers as PostgreSQL's one statement does — the
 //! same `affected_rows`, the same `returning`, the same scope guard — and
@@ -14,8 +14,8 @@ mod common;
 
 use common::mysql::{fresh_db, run_ddl, TestDb};
 use serde_json::{json, Value};
-use vision_graphql::ast::{BoolExpr, CmpOp};
-use vision_graphql::{Engine, Error, Mutation, Schema, ScopeSet};
+use viate_graphql::ast::{BoolExpr, CmpOp};
+use viate_graphql::{Engine, Error, Mutation, Schema, ScopeSet};
 
 const DDL: &str = r#"
 CREATE TABLE users (
@@ -496,7 +496,7 @@ async fn a_conflict_that_inserts_nothing_inserts_no_children_either() {
     let err = e
         .run(
             Mutation::insert("users", vec![Default::default()]).on_conflict(
-                vision_graphql::ast::OnConflict {
+                viate_graphql::ast::OnConflict {
                     constraint: "users_pkey".into(),
                     update_columns: Vec::new(),
                     where_: None,
@@ -598,7 +598,7 @@ async fn scope_guards_every_write() {
         matches!(&err, Error::ScopeViolation { table, rows: 1, .. } if table == "posts"),
         "{err:?}"
     );
-    assert_eq!(err.code(), vision_graphql::ErrorCode::ScopeDenied);
+    assert_eq!(err.code(), viate_graphql::ErrorCode::ScopeDenied);
     assert_eq!(count(&e, "posts").await, 4);
     let err = scoped
         .query(r#"mutation { insert_users(objects: [{name: "Zed", posts: {data: [{title: "x"}]}}]) { affected_rows } }"#, None)
@@ -678,7 +678,7 @@ async fn compiled_persisted_builder_and_transactions() {
     let v = q(&e, "{ posts_by_pk(id: 3) { views } }").await;
     assert_eq!(v["posts_by_pk"]["views"], json!(20));
 
-    let reg = vision_graphql::QueryRegistry::compile_all(
+    let reg = viate_graphql::QueryRegistry::compile_all(
         &e,
         [(
             "del",
@@ -762,7 +762,7 @@ async fn a_view_is_read_only_and_what_is_published_is_implemented() {
     assert!(err.to_string().contains("read-only"), "{err}");
     let ts = e.schema().type_system();
     assert!(ts.mutation_root().is_some());
-    let sdl = vision_graphql::sdl::render(ts);
+    let sdl = viate_graphql::sdl::render(ts);
     assert!(sdl.contains("insert_users"), "{sdl}");
     // A table without a primary key gets its mutation fields — the schema
     // is dialect-neutral there — and every one is refused on use: rows are

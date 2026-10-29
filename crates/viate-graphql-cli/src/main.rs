@@ -15,9 +15,9 @@ use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "vision-gql",
+    name = "viate-gql",
     version,
-    about = "vision-graphql schema overlay tool"
+    about = "viate-graphql schema overlay tool"
 )]
 struct Cli {
     #[command(subcommand)]

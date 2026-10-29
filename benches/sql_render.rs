@@ -1,10 +1,10 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use vision_graphql::ast::{
+use viate_graphql::ast::{
     BoolExpr, CmpOp, Count, Field, Operation, QueryArgs, RootBody, RootField,
 };
-use vision_graphql::schema::{ColumnType, Relation, Schema, Table};
-use vision_graphql::sql::render;
-use vision_graphql::Dialect;
+use viate_graphql::schema::{ColumnType, Relation, Schema, Table};
+use viate_graphql::sql::render;
+use viate_graphql::Dialect;
 
 fn sample_schema() -> Schema {
     Schema::builder()

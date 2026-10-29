@@ -7,7 +7,7 @@
 //! templates and resolves them against a [`Principal`] once per request.
 //!
 //! ```
-//! use vision_graphql::predicate::{col, rel, principal};
+//! use viate_graphql::predicate::{col, rel, principal};
 //! // orders owned by the caller, samples reachable via their order:
 //! let _orders = col("user_id").eq(principal());
 //! let _samples = rel("order", col("user_id").eq(principal()));

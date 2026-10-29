@@ -1,4 +1,4 @@
-# Vision-GraphQL Phase 7 — More Operators + GraphQL Fragments
+# Viate-GraphQL Phase 7 — More Operators + GraphQL Fragments
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -810,8 +810,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Schema, Table};
-use vision_graphql::Engine;
+use viate_graphql::schema::{PgType, Schema, Table};
+use viate_graphql::Engine;
 
 fn schema() -> Schema {
     Schema::builder()

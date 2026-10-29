@@ -3,7 +3,7 @@
 use anyhow::{bail, Context, Result};
 use std::collections::BTreeMap;
 use std::path::Path;
-use vision_graphql::schema::config::parse;
+use viate_graphql::schema::config::parse;
 
 pub fn run(path: &Path) -> Result<()> {
     let text =
@@ -61,7 +61,7 @@ pub fn run(path: &Path) -> Result<()> {
             o.relations.iter().any(|r| {
                 matches!(
                     r.kind,
-                    vision_graphql::schema::config::RelationKindOverlay::Object
+                    viate_graphql::schema::config::RelationKindOverlay::Object
                 )
             })
         });
@@ -69,7 +69,7 @@ pub fn run(path: &Path) -> Result<()> {
             println!(
                 "note: object relations are declared; whether each mapping is \
                  covered by a unique constraint needs the database — \
-                 `vision-gql diff` checks it and warns"
+                 `viate-gql diff` checks it and warns"
             );
         }
         Ok(())
@@ -227,7 +227,7 @@ mod tests {
                 .unwrap_or(0);
             let seq = SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             p.push(format!(
-                "vision-gql-test-{nanos}-{}-{seq}.toml",
+                "viate-gql-test-{nanos}-{}-{seq}.toml",
                 std::process::id()
             ));
             let mut f = std::fs::File::create(&p).expect("temp file");

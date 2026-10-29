@@ -636,7 +636,7 @@ git commit -m "test: nested selection on delete_*_by_pk"
 **Files:**
 - Modify: `src/sql.rs` (its `#[cfg(test)] mod tests` block; search for `mod tests` or `#[test] fn render_insert_array_with_returning` to find existing snapshot tests)
 
-**Context:** The existing snapshot `vision_graphql__sql__tests__render_insert_array_with_returning.snap` shows the format. Add one new snapshot proving the nested relation renders as a `json_agg(SELECT ...)` subquery inside the top-level `json_build_object`. Keep the fixture schema small: `users` + `posts` with a single array relation.
+**Context:** The existing snapshot `viate_graphql__sql__tests__render_insert_array_with_returning.snap` shows the format. Add one new snapshot proving the nested relation renders as a `json_agg(SELECT ...)` subquery inside the top-level `json_build_object`. Keep the fixture schema small: `users` + `posts` with a single array relation.
 
 - [ ] **Step 1: Find an existing snapshot test to mirror**
 

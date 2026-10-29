@@ -3,9 +3,9 @@
 use serde::Deserialize;
 use serde_json::json;
 use std::collections::BTreeMap;
-use vision_graphql::ast::OrderDir;
-use vision_graphql::schema::{ColumnType, Schema, Table};
-use vision_graphql::{Engine, Mutation, MutationResult, Query};
+use viate_graphql::ast::OrderDir;
+use viate_graphql::schema::{ColumnType, Schema, Table};
+use viate_graphql::{Engine, Mutation, MutationResult, Query};
 
 mod common;
 

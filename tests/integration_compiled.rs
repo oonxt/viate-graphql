@@ -5,9 +5,9 @@
 //! around scoped execution hold where it matters.
 
 use serde_json::{json, Value};
-use vision_graphql::predicate::{col, principal, Principal};
-use vision_graphql::schema::{ColumnType, Relation, Schema, Table};
-use vision_graphql::{Engine, Error, ScopePolicy};
+use viate_graphql::predicate::{col, principal, Principal};
+use viate_graphql::schema::{ColumnType, Relation, Schema, Table};
+use viate_graphql::{Engine, Error, ScopePolicy};
 
 mod common;
 
@@ -875,7 +875,7 @@ async fn a_host_holding_its_own_transaction_runs_scoped_statements_in_it() {
         "{err:?}"
     );
     let err = engine
-        .scoped(vision_graphql::ScopeSet::new())
+        .scoped(viate_graphql::ScopeSet::new())
         .query_on(&mut *tx, "{ orders { id } }", None)
         .await
         .unwrap_err();

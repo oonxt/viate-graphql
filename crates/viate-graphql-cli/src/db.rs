@@ -9,10 +9,10 @@ use anyhow::{bail, Context, Result};
 use sqlx::mysql::MySqlPoolOptions;
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 use sqlx::sqlite::SqlitePoolOptions;
-use vision_graphql::schema::introspect::{introspect_schemas, IntrospectedDb};
-use vision_graphql::schema::merge::build_from_introspection;
-use vision_graphql::schema::SchemaBuilder;
-use vision_graphql::Dialect;
+use viate_graphql::schema::introspect::{introspect_schemas, IntrospectedDb};
+use viate_graphql::schema::merge::build_from_introspection;
+use viate_graphql::schema::SchemaBuilder;
+use viate_graphql::Dialect;
 
 use crate::render::redact_url;
 
@@ -70,7 +70,7 @@ pub fn connect(url: &str) -> Result<Source> {
         if url.contains(":memory:") {
             bail!("an in-memory SQLite database has no tables to introspect");
         }
-        let opts = vision_graphql::sqlite::connect_options(url)
+        let opts = viate_graphql::sqlite::connect_options(url)
             .with_context(|| format!("parsing connection URL {redacted}"))?
             .read_only(true)
             .create_if_missing(false);
@@ -81,10 +81,10 @@ pub fn connect(url: &str) -> Result<Source> {
         )
     } else if is_mysql(url) {
         #[cfg(not(feature = "mysql"))]
-        bail!("this vision-gql was built without MySQL support (the `mysql` feature)");
+        bail!("this viate-gql was built without MySQL support (the `mysql` feature)");
         #[cfg(feature = "mysql")]
         {
-            let opts = vision_graphql::mysql::connect_options(url)
+            let opts = viate_graphql::mysql::connect_options(url)
                 .with_context(|| format!("parsing connection URL {redacted}"))?;
             Pool::MySql(
                 MySqlPoolOptions::new()
@@ -133,7 +133,7 @@ impl Source {
                          and every table is introspected"
                     );
                 }
-                let found = vision_graphql::schema::introspect_sqlite::introspect(pool)
+                let found = viate_graphql::schema::introspect_sqlite::introspect(pool)
                     .await
                     .with_context(|| format!("introspect failed against {}", self.redacted))?;
                 Ok(Found {
@@ -150,7 +150,7 @@ impl Source {
                          introspected (mysql://user:pass@host/name)"
                     );
                 }
-                let db = vision_graphql::schema::introspect_mysql::introspect(pool)
+                let db = viate_graphql::schema::introspect_mysql::introspect(pool)
                     .await
                     .with_context(|| format!("introspect failed against {}", self.redacted))?;
                 Ok(Found {

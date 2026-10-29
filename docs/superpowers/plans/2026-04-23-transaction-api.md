@@ -43,8 +43,8 @@ use serde_json::{json, Value};
 use testcontainers_modules::testcontainers::ImageExt;
 use testcontainers_modules::{postgres::Postgres, testcontainers::runners::AsyncRunner};
 use tokio_postgres::NoTls;
-use vision_graphql::schema::{PgType, Relation, Schema, Table};
-use vision_graphql::{Engine, Error};
+use viate_graphql::schema::{PgType, Relation, Schema, Table};
+use viate_graphql::{Engine, Error};
 
 fn schema() -> Schema {
     Schema::builder()
@@ -275,7 +275,7 @@ impl Engine {
         let vars = variables.unwrap_or(Value::Object(Default::default()));
         let op = parse_and_lower(source, &vars, None, &self.schema)?;
         let (sql, binds) = render(&op, &self.schema)?;
-        tracing::debug!(target: "vision_graphql::engine", %sql, binds = binds.len(), "executing");
+        tracing::debug!(target: "viate_graphql::engine", %sql, binds = binds.len(), "executing");
         crate::executor::execute(&self.pool, &sql, &binds).await
     }
 
@@ -284,7 +284,7 @@ impl Engine {
     pub async fn run(&self, op: impl crate::builder::IntoOperation) -> Result<Value> {
         let operation = op.into_operation();
         let (sql, binds) = render(&operation, &self.schema)?;
-        tracing::debug!(target: "vision_graphql::engine", %sql, binds = binds.len(), "executing");
+        tracing::debug!(target: "viate_graphql::engine", %sql, binds = binds.len(), "executing");
         crate::executor::execute(&self.pool, &sql, &binds).await
     }
 
@@ -334,7 +334,7 @@ impl<'tx> TxClient<'tx> {
         let vars = variables.unwrap_or(Value::Object(Default::default()));
         let op = parse_and_lower(source, &vars, None, &self.schema)?;
         let (sql, binds) = render(&op, &self.schema)?;
-        tracing::debug!(target: "vision_graphql::engine", %sql, binds = binds.len(), "executing in tx");
+        tracing::debug!(target: "viate_graphql::engine", %sql, binds = binds.len(), "executing in tx");
         crate::executor::execute_on(self.tx, &sql, &binds).await
     }
 
@@ -342,7 +342,7 @@ impl<'tx> TxClient<'tx> {
     pub async fn run(&self, op: impl crate::builder::IntoOperation) -> Result<Value> {
         let operation = op.into_operation();
         let (sql, binds) = render(&operation, &self.schema)?;
-        tracing::debug!(target: "vision_graphql::engine", %sql, binds = binds.len(), "executing in tx");
+        tracing::debug!(target: "viate_graphql::engine", %sql, binds = binds.len(), "executing in tx");
         crate::executor::execute_on(self.tx, &sql, &binds).await
     }
 }
@@ -717,7 +717,7 @@ let result = engine.transaction(async |tx| {
            }"#,
         Some(serde_json::json!({ "uid": uid })),
     ).await?;
-    Ok::<_, vision_graphql::Error>(p)
+    Ok::<_, viate_graphql::Error>(p)
 }).await?;
 ```
 
@@ -764,7 +764,7 @@ git commit -m "feat: 0.2.0 — add Engine::transaction"
 
 Run: `cargo publish --dry-run 2>&1 | tail -40`
 
-Expected: "Uploading vision-graphql v0.2.0 ... (dry run)" with no errors. Pay attention to:
+Expected: "Uploading viate-graphql v0.2.0 ... (dry run)" with no errors. Pay attention to:
 - License / metadata warnings — fix in `Cargo.toml` if any.
 - `cargo-readme` / doc-test failures — address before the real publish.
 - Included files — verify `exclude = ["docs/**", ...]` still keeps the tarball lean (look for the "Packaging" line count).
@@ -793,7 +793,7 @@ git commit -m "chore: tidy Cargo.toml for 0.2.0 publish"
 
 - [ ] **Step 1: Ask the user to confirm publish**
 
-Present: "Dry-run clean. Ready to `cargo publish` vision-graphql v0.2.0 to crates.io. Confirm? (yes/no)"
+Present: "Dry-run clean. Ready to `cargo publish` viate-graphql v0.2.0 to crates.io. Confirm? (yes/no)"
 
 Wait for explicit "yes" before Step 2.
 
@@ -802,7 +802,7 @@ Wait for explicit "yes" before Step 2.
 From the main worktree:
 
 ```bash
-cd /Users/oof/Documents/workspace/vision-graphql
+cd /Users/oof/Documents/workspace/viate-graphql
 git checkout main
 git merge --ff-only feature/transaction-api
 ```
@@ -819,7 +819,7 @@ git tag -a v0.2.0 -m "v0.2.0 — transaction API"
 
 Run: `cargo publish 2>&1 | tail -20`
 
-Expected: "Uploading vision-graphql v0.2.0" followed by success. If a crates.io auth error appears, prompt the user to run `cargo login` themselves (interactive).
+Expected: "Uploading viate-graphql v0.2.0" followed by success. If a crates.io auth error appears, prompt the user to run `cargo login` themselves (interactive).
 
 - [ ] **Step 5: Push main + tag**
 

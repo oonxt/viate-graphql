@@ -238,7 +238,7 @@ pub(crate) enum DistinctOn {
 /// order](Dialect::numbers_rows_for_order) adds to a derived table: the
 /// row's position under the `ORDER BY` asked for. Prefixed and unquoted;
 /// not a name a column can be exposed as through the GraphQL path.
-pub(crate) const ORDER_NUMBER: &str = "__vision_graphql_ord";
+pub(crate) const ORDER_NUMBER: &str = "__viate_graphql_ord";
 
 /// The MySQL type `JSON_TABLE` reads a bound list's elements as: what an
 /// `_in` compares the column against. `TEXT` rather than `CHAR(n)`, which

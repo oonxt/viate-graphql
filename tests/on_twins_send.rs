@@ -16,7 +16,7 @@ use sqlx::pool::PoolConnection;
 use sqlx::{PgConnection, PgPool, Postgres, Transaction};
 use std::future::Future;
 use std::sync::Arc;
-use vision_graphql::{CompiledQuery, Engine, Principal, Query, ScopeSet};
+use viate_graphql::{CompiledQuery, Engine, Principal, Query, ScopeSet};
 
 /// Every twin, each on a fresh `$t` (an expression re-borrowing the target).
 /// A twin added to the engine belongs here too.

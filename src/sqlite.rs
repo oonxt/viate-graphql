@@ -35,7 +35,7 @@ pub const MIN_VERSION: (u32, u32, u32) = (3, 38, 0);
 /// ```no_run
 /// # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 /// let pool = sqlx::sqlite::SqlitePoolOptions::new()
-///     .connect_with(vision_graphql::sqlite::connect_options("sqlite://app.db")?)
+///     .connect_with(viate_graphql::sqlite::connect_options("sqlite://app.db")?)
 ///     .await?;
 /// # Ok(()) }
 /// ```
@@ -65,7 +65,7 @@ pub async fn verify(pool: &SqlitePool) -> Result<()> {
     if folds != 0 {
         return Err(Error::Schema(
             "SQLite LIKE is case-insensitive on this pool; connect with \
-             vision_graphql::sqlite::connect_options, or set PRAGMA case_sensitive_like = ON \
+             viate_graphql::sqlite::connect_options, or set PRAGMA case_sensitive_like = ON \
              on every connection"
                 .into(),
         ));
@@ -73,7 +73,7 @@ pub async fn verify(pool: &SqlitePool) -> Result<()> {
     if fks != 1 {
         return Err(Error::Schema(
             "SQLite foreign keys are not enforced on this pool; connect with \
-             vision_graphql::sqlite::connect_options, or set PRAGMA foreign_keys = ON on \
+             viate_graphql::sqlite::connect_options, or set PRAGMA foreign_keys = ON on \
              every connection"
                 .into(),
         ));

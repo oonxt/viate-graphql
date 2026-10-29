@@ -250,12 +250,12 @@ pub struct Engine<DB: Backend = Postgres> {
 ///
 /// Here rather than at `SchemaBuilder::build`: every serving deployment passes
 /// through an `Engine` constructor exactly once per engine, while schemas are
-/// also built by tooling (SDL export, `vision-gql diff`) that reports the same
+/// also built by tooling (SDL export, `viate-gql diff`) that reports the same
 /// warnings on its own channel and does not want a second, unfilterable copy
 /// on stderr.
 fn log_schema_warnings(schema: &Schema) {
     for w in schema.warnings() {
-        tracing::warn!(target: "vision_graphql::schema", "{w}");
+        tracing::warn!(target: "viate_graphql::schema", "{w}");
     }
 }
 
@@ -270,7 +270,7 @@ fn log_schema_warnings(schema: &Schema) {
 fn check_dialect<DB: Backend>(schema: &Schema) {
     assert!(
         schema.dialect() == DB::DIALECT,
-        "vision_graphql: the schema describes {:?} but the engine runs on {:?}; \
+        "viate_graphql: the schema describes {:?} but the engine runs on {:?}; \
          introspect the schema from the same database the pool connects to, or \
          set SchemaBuilder::dialect",
         schema.dialect(),
@@ -832,7 +832,7 @@ async fn run_rendered<DB: Backend, R: Run<DB>>(
         Rendered::Statement { sql, specs, keys } => {
             let binds = crate::types::resolve_binds(specs, inputs)?;
             tracing::debug!(
-                target: "vision_graphql::engine",
+                target: "viate_graphql::engine",
                 %sql,
                 binds = binds.len(),
                 scoped,
@@ -847,7 +847,7 @@ async fn run_rendered<DB: Backend, R: Run<DB>>(
         }
         Rendered::Plan(plan) => {
             tracing::debug!(
-                target: "vision_graphql::engine",
+                target: "viate_graphql::engine",
                 statements = plan.text().lines().count(),
                 scoped,
                 executor = target.name(),
