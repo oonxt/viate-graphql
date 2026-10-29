@@ -11,11 +11,15 @@ release commits; entries from 0.13.0 on are written as the work lands.
   crates are `viate-graphql` (was `vision-graphql`) and `viate-graphql-cli`
   (was `vision-graphql-cli`), the binary is `viate-gql` (was `vision-gql`),
   and imports move from `vision_graphql::…` to `viate_graphql::…`; the API
-  itself is unchanged. The aliases the engine gives its own helper columns
-  change with the name (`__viate_graphql_ob<n>`, `__viate_graphql_rn`,
-  `__viate_graphql_ord`), so a compiled statement's text differs from the
-  same statement compiled by the old name — the rows are the same. Earlier
-  entries were written as the work landed, under the old names.
+  itself is unchanged. The old name also appears in two things a client can
+  see: the aliases the engine gives its helper columns
+  (`__viate_graphql_ob<n>`, `__viate_graphql_rn`, `__viate_graphql_ord` — a
+  compiled statement's text differs from the same statement compiled by the
+  old name, the rows are the same) and the prefix of the scope guard's
+  violation message (now `viate_graphql: scope check violation …` in
+  `errors[].message`), so anything matching the old spellings stops
+  matching. Entries for releases up to 0.28.0 were published under the old
+  names; they are shown with the new names substituted.
 
 ## 0.28.0 — 2026-10-27
 
